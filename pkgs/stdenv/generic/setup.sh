@@ -408,6 +408,11 @@ substitute() {
 
         if [ "$p" = --subst-var ]; then
             varName="${params[$((n + 1))]}"
+            # check if the used nix attribute name is a valid bash name
+            if ! [[ "$varName" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+                echo "substitution variables must be valid bash names, \"$varName\" isn't."
+                exit 1;
+            fi
             pattern="@$varName@"
             replacement="${!varName}"
             n=$((n + 1))
@@ -434,19 +439,23 @@ substituteInPlace() {
 }
 
 
+# Substitute all environment variables that do not start with an upper-case
+# character or underscore. Note: other names that aren't bash-valid
+# will cause an error during `substitute --subst-var`.
 substituteAll() {
     local input="$1"
     local output="$2"
+    local -a args=()
 
-    # Select all environment variables that start with a lowercase character.
-    for envVar in $(env | sed -e $'s/^\([a-z][^=]*\)=.*/\\1/; t \n d'); do
+    # We need to be careful due to vars with multi-line contents or weird names.
+    while IFS= read -r -d '' varName; do
         if [ "$NIX_DEBUG" = "1" ]; then
-            echo "$envVar -> ${!envVar}"
+            echo "@varName@ -> '${varName}'"
         fi
-        args="$args --subst-var $envVar"
-    done
+        args+=("--subst-var" "$varName")
+    done < <(env -0 | cut -z -d= -f1 | grep -z -v '^[_A-Z]')
 
-    substitute "$input" "$output" $args
+    substitute "$input" "$output" "${args[@]}"
 }
 
 

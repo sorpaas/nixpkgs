@@ -1597,7 +1597,7 @@ in
 
   fuse-7z-ng = callPackage ../tools/filesystems/fuse-7z-ng { };
 
-  fuse_zip = callPackage ../tools/filesystems/fuse-zip { };
+  fuse-zip = callPackage ../tools/filesystems/fuse-zip { };
 
   exfat = callPackage ../tools/filesystems/exfat { };
 
@@ -8567,9 +8567,9 @@ in
 
   phonon = callPackage ../development/libraries/phonon {};
 
-  phonon_backend_gstreamer = callPackage ../development/libraries/phonon-backend-gstreamer/qt4 {};
+  phonon-backend-gstreamer = callPackage ../development/libraries/phonon/backends/gstreamer.nix {};
 
-  phonon_backend_vlc = callPackage ../development/libraries/phonon-backend-vlc/qt4 {};
+  phonon-backend-vlc = callPackage ../development/libraries/phonon/backends/vlc.nix {};
 
   physfs = callPackage ../development/libraries/physfs { };
 
@@ -8707,12 +8707,6 @@ in
     mlt = callPackage ../development/libraries/mlt/qt-5.nix {};
 
     openbr = callPackage ../development/libraries/openbr { };
-
-    phonon = callPackage ../development/libraries/phonon { };
-
-    phonon-backend-gstreamer = callPackage ../development/libraries/phonon-backend-gstreamer/qt5 { };
-
-    phonon-backend-vlc = callPackage ../development/libraries/phonon-backend-vlc/qt5 { };
 
     polkit-qt = callPackage ../development/libraries/polkit-qt-1/qt-5.nix { };
 
@@ -15641,8 +15635,13 @@ in
 
     kile = callPackage ../applications/editors/kile/frameworks.nix { };
 
-    konversation = callPackage ../applications/networking/irc/konversation/1.6.nix {
-    };
+    konversation = callPackage ../applications/networking/irc/konversation/1.6.nix { };
+
+    phonon = callPackage ../development/libraries/phonon { };
+
+    phonon-backend-gstreamer = callPackage ../development/libraries/phonon/backends/gstreamer.nix { };
+
+    phonon-backend-vlc = callPackage ../development/libraries/phonon/backends/vlc.nix { };
 
     quassel = callPackage ../applications/networking/irc/quassel/qt-5.nix {
       monolithic = true;
@@ -15686,25 +15685,9 @@ in
 
   kde5 =
     let
-      frameworks = import ../desktops/kde-5/frameworks-5.19 { inherit pkgs; };
-      plasma = import ../desktops/kde-5/plasma-5.5 { inherit pkgs; };
-      applications = import ../desktops/kde-5/applications-15.12 { inherit pkgs; };
-      merged = self:
-        { plasma = plasma self;
-          frameworks = frameworks self;
-          applications = applications self; }
-        // frameworks self
-        // plasma self
-        // applications self
-        // kde5PackagesFun self;
-    in
-      recurseIntoAttrs (lib.makeScope qt55.newScope merged);
-
-  kde5_latest =
-    let
-      frameworks = import ../desktops/kde-5/frameworks-5.19 { inherit pkgs; };
-      plasma = import ../desktops/kde-5/plasma-5.5 { inherit pkgs; };
-      applications = import ../desktops/kde-5/applications-15.12 { inherit pkgs; };
+      frameworks = import ../desktops/kde-5/frameworks-5.21 { inherit pkgs; };
+      plasma = import ../desktops/kde-5/plasma-5.6 { inherit pkgs; };
+      applications = import ../desktops/kde-5/applications-16.04 { inherit pkgs; };
       merged = self:
         { plasma = plasma self;
           frameworks = frameworks self;
