@@ -745,6 +745,22 @@ let
     sha256 = "1rmm1ky7irqypqjkk6qcd2n0xkzpaggdxql9dp9i9qci5rvvwwd4";
   };
 
+  ethereum = buildFromGitHub rec {
+    name = "ethereum";
+    rev = "v1.4.1";
+    goPackagePath = "github.com/ethereum/go-ethereum";
+    owner = "ethereum";
+    repo = "go-ethereum";
+    sha256 = "0z6yzkk72g41dzqa52fizxqxqh349y1m9s3byfh9ixq5xy5fnjn3";
+    preBuild = "export GOPATH=$GOPATH:$NIX_BUILD_TOP/go/src/${goPackagePath}/Godeps/_workspace";
+    postBuild = "rm $NIX_BUILD_TOP/go/bin/*test";
+    meta = with stdenv.lib; {
+      homepage = "https://ethereum.github.io/go-ethereum/";
+      description = "Official golang implementation of the Ethereum protocol";
+      license = with licenses; [ lgpl3 gpl3 ];
+    };
+  };
+
   exercism = buildFromGitHub {
     rev = "v2.2.1";
     name = "exercism";
@@ -4159,4 +4175,22 @@ let
     sha256  = "14p3hvv82bsxqnbnzz8hjv75i39kzg154a132n6cdxx3vgw76gck";
     propagatedBuildInputs = [ go-colorable mattn.go-runewidth ingo ];
   };
+
+  textql = buildFromGitHub rec {
+    rev     = "1785cd353c68aa34f97627143b9c2908dfd4ea04";
+    version = "2.0.3";
+    owner   = "dinedal";
+    repo    = "textql";
+    sha256 = "1b61w4pc5gl7m12mphricihzq7ifnzwn0yyw3ypv0d0fj26h5hc3";
+    propagatedBuildInputs = [ go-sqlite3 ];
+
+    meta = with stdenv.lib; {
+      description = "Execute SQL against structured text like CSV or TSV";
+      homepage = https://github.com/dinedal/textql;
+      license = licenses.mit;
+      maintainers = with maintainers; [ vrthra ];
+    };
+
+  };
+
 }; in self

@@ -4,9 +4,11 @@
 
 kdeFramework {
   name = "kinit";
+  meta = { maintainers = [ lib.maintainers.ttuegel ]; };
   nativeBuildInputs = [ extra-cmake-modules kdoctools libcap.out ];
-  buildInputs = [ kconfig kcrash kservice libcap ];
-  propagatedBuildInputs = [ ki18n kio kwindowsystem ];
+  propagatedBuildInputs = [
+    kconfig kcrash ki18n kio kservice kwindowsystem libcap
+  ];
   patches = copyPathsToStore (lib.readPathsFromFile ./. ./series);
   meta = {
     maintainers = [ lib.maintainers.ttuegel ];

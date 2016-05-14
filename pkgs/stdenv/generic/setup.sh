@@ -398,7 +398,7 @@ substitute() {
     content="${content%X}"
 
     for ((n = 2; n < ${#params[*]}; n += 1)); do
-        p=${params[$n]}
+        p="${params[$n]}"
 
         if [ "$p" = --replace ]; then
             pattern="${params[$((n + 1))]}"
@@ -408,14 +408,16 @@ substitute() {
 
         if [ "$p" = --subst-var ]; then
             varName="${params[$((n + 1))]}"
+            n=$((n + 1))
             # check if the used nix attribute name is a valid bash name
             if ! [[ "$varName" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-                echo "substitution variables must be valid bash names, \"$varName\" isn't."
-                exit 1;
+                echo "WARNING: substitution variables should be valid bash names,"
+                echo "  \"$varName\" isn't and therefore was skipped; it might be caused"
+                echo "  by multi-line phases in variables - see #14907 for details."
+                continue
             fi
             pattern="@$varName@"
             replacement="${!varName}"
-            n=$((n + 1))
         fi
 
         if [ "$p" = --subst-var-by ]; then
@@ -447,13 +449,13 @@ substituteAll() {
     local output="$2"
     local -a args=()
 
-    # We need to be careful due to vars with multi-line contents or weird names.
-    while IFS= read -r -d '' varName; do
+    # Select all environment variables that start with a lowercase character.
+    for varName in $(env | sed -e $'s/^\([a-z][^= \t]*\)=.*/\\1/; t \n d'); do
         if [ "$NIX_DEBUG" = "1" ]; then
-            echo "@varName@ -> '${varName}'"
+            echo "@${varName}@ -> '${!varName}'"
         fi
         args+=("--subst-var" "$varName")
-    done < <(env -0 | cut -z -d= -f1 | grep -z -v '^[_A-Z]')
+    done
 
     substitute "$input" "$output" "${args[@]}"
 }

@@ -22,8 +22,11 @@ let
     assert kversion == kernel.version;
     { name = "grsecurity-${grversion}-${kversion}";
       inherit grversion kernel patches kversion revision;
+      # When updating versions/hashes, ALWAYS use the official version; we use
+      # this mirror only because upstream removes sources files immediately upon
+      # releasing a new version ...
       patch = fetchurl {
-        url = "https://grsecurity.net/${branch}/grsecurity-${grversion}-${kversion}-${revision}.patch";
+        url = "https://raw.githubusercontent.com/slashbeast/grsecurity-scrape/master/test/grsecurity-${grversion}-${kversion}-${revision}.patch";
         inherit sha256;
       };
       features.grsecurity = true;
@@ -105,9 +108,9 @@ rec {
   grsecurity_4_5 = grsecPatch
     { kernel    = pkgs.grsecurity_base_linux_4_5;
       patches   = [ grsecurity_fix_path_4_5 ];
-      kversion  = "4.5.3";
-      revision  = "201605060852";
-      sha256    = "1yg5fp60nay2cvnpxnx29995wk04r995y9030dwkgk3xpxifr6z1";
+      kversion  = "4.5.4";
+      revision  = "201605131918";
+      sha256    = "0f5s8lj6zc4jp2cpxm7r891px3dmb6m3ximfigwq809yydg5aimv";
     };
 
   grsecurity_latest = grsecurity_4_5;
