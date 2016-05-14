@@ -10,7 +10,4 @@ kdeFramework {
     kconfig kcrash ki18n kio kservice kwindowsystem libcap
   ];
   patches = copyPathsToStore (lib.readPathsFromFile ./. ./series);
-  meta = {
-    maintainers = [ lib.maintainers.ttuegel ];
-  };
 }
