@@ -2927,6 +2927,8 @@ in
   platformioPackages = callPackage ../development/arduino/platformio { };
   platformio = platformioPackages.platformio-chrootenv.override {};
 
+  platinum-searcher = (callPackage ../tools/text/platinum-searcher { }).bin // { outputs = [ "bin" ]; };
+
   plex = callPackage ../servers/plex { enablePlexPass = config.plex.enablePlexPass or false; };
 
   ploticus = callPackage ../tools/graphics/ploticus {
@@ -3532,6 +3534,10 @@ in
   traceroute = callPackage ../tools/networking/traceroute { };
 
   tracebox = callPackage ../tools/networking/tracebox { };
+
+  tracefilegen = callPackage ../development/tools/analysis/garcosim/tracefilegen { };
+
+  tracefilesim = callPackage ../development/tools/analysis/garcosim/tracefilesim { };
 
   trash-cli = callPackage ../tools/misc/trash-cli { };
 
@@ -5598,12 +5604,12 @@ in
 
   python = python2;
   python2 = python27;
-  python3 = python34;
+  python3 = python35;
 
   # pythonPackages further below, but assigned here because they need to be in sync
   pythonPackages = python2Packages;
   python2Packages = python27Packages;
-  python3Packages = python34Packages;
+  python3Packages = python35Packages;
 
   python26 = callPackage ../development/interpreters/python/2.6 {
     db = db47;
@@ -6360,9 +6366,7 @@ in
 
   rolespec = callPackage ../development/tools/misc/rolespec { };
 
-  rr = callPackage ../development/tools/analysis/rr {
-    stdenv = stdenv_32bit;
-  };
+  rr = callPackage ../development/tools/analysis/rr { };
 
   saleae-logic = callPackage ../development/tools/misc/saleae-logic { };
 
@@ -9849,7 +9853,7 @@ in
 
   grafana = (callPackage ../servers/monitoring/grafana { }).bin // { outputs = ["bin"]; };
 
-  groovebasin = callPackage ../applications/audio/groovebasin { };
+  groovebasin = callPackage ../applications/audio/groovebasin { nodejs = nodejs-0_10; };
 
   haka = callPackage ../tools/security/haka { };
 
@@ -10778,6 +10782,8 @@ in
 
     batman_adv = callPackage ../os-specific/linux/batman-adv {};
 
+    bcc = callPackage ../os-specific/linux/bcc { };
+    
     bbswitch = callPackage ../os-specific/linux/bbswitch {};
 
     ati_drivers_x11 = callPackage ../os-specific/linux/ati-drivers { };
@@ -13674,6 +13680,8 @@ in
 
   phototonic = qt5.callPackage ../applications/graphics/phototonic { };
 
+  phwmon = callPackage ../applications/misc/phwmon { };
+
   pianobar = callPackage ../applications/audio/pianobar { };
 
   pianobooster = callPackage ../applications/audio/pianobooster { };
@@ -13738,6 +13746,8 @@ in
   };
 
   plugin-torture = callPackage ../applications/audio/plugin-torture { };
+
+  pmenu = callPackage ../applications/misc/pmenu { };
 
   poezio = python3Packages.poezio;
 
@@ -14193,7 +14203,7 @@ in
 
   taskserver = callPackage ../servers/misc/taskserver { };
 
-  tdesktop = qt55.callPackage ../applications/networking/instant-messengers/telegram/tdesktop { };
+  tdesktop = qt5.callPackage ../applications/networking/instant-messengers/telegram/tdesktop { };
 
   telegram-cli = callPackage ../applications/networking/instant-messengers/telegram/telegram-cli { };
 
@@ -14386,6 +14396,7 @@ in
 
   neovim = callPackage ../applications/editors/neovim {
     inherit (lua52Packages) lpeg luaMessagePack luabitop;
+    python3Packages = python34Packages;
   };
 
   neovim-qt = callPackage ../applications/editors/neovim/qt.nix {
@@ -16519,6 +16530,8 @@ in
 
   m3d-linux = callPackage ../misc/drivers/m3d-linux { };
 
+  mnemonicode = callPackage ../misc/mnemonicode { };
+
   mysqlWorkbench = newScope gnome ../applications/misc/mysql-workbench {
     lua = lua5_1;
     libctemplate = libctemplate_2_2;
@@ -16753,8 +16766,8 @@ in
     pulseaudioSupport = config.pulseaudio or stdenv.isLinux;
   };
   wineStable = wine.override { wineRelease = "stable"; };
-  wineUnstable = lowPrio (wine.override { wineRelease = "unstable"; });
-  wineStaging = lowPrio (wine.override { wineRelease = "staging"; });
+  wineUnstable = lowPrio (self.wine.override { wineRelease = "unstable"; });
+  wineStaging = lowPrio (self.wine.override { wineRelease = "staging"; });
 
   winetricks = callPackage ../misc/emulators/wine/winetricks.nix {
     inherit (gnome2) zenity;
