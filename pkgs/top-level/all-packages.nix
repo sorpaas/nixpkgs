@@ -455,7 +455,9 @@ in
 
   atomicparsley = callPackage ../tools/video/atomicparsley { };
 
-  attic = callPackage ../tools/backup/attic { };
+  attic = callPackage ../tools/backup/attic {
+    python3Packages = python34Packages;
+  };
 
   avfs = callPackage ../tools/filesystems/avfs { };
 
@@ -614,7 +616,9 @@ in
 
   bochs = callPackage ../applications/virtualization/bochs { };
 
-  borgbackup = callPackage ../tools/backup/borg { };
+  borgbackup = callPackage ../tools/backup/borg {
+    python3Packages = python34Packages;
+  };
 
   boomerang = callPackage ../development/tools/boomerang { };
 
@@ -792,6 +796,8 @@ in
   fsmark = callPackage ../tools/misc/fsmark { };
 
   fzf = goPackages.fzf.bin // { outputs = [ "bin" ]; };
+
+  fzy = callPackage ../tools/misc/fzy { };
 
   gencfsm = callPackage ../tools/security/gencfsm { };
 
@@ -1484,6 +1490,7 @@ in
 
     table-other = callPackage ../tools/inputmethods/fcitx-engines/fcitx-table-other { };
 
+    cloudpinyin = callPackage ../tools/inputmethods/fcitx-engines/fcitx-cloudpinyin { };
   };
 
   fcitx-configtool = callPackage ../tools/inputmethods/fcitx/fcitx-configtool.nix { };
@@ -2097,7 +2104,9 @@ in
 
   jnettop = callPackage ../tools/networking/jnettop { };
 
-  john = callPackage ../tools/security/john { };
+  john = callPackage ../tools/security/john {
+    gcc = gcc49; # doesn't build with gcc5
+  };
 
   jp2a = callPackage ../applications/misc/jp2a { };
 
@@ -2371,9 +2380,9 @@ in
 
   makemkv = callPackage ../applications/video/makemkv { };
 
-  man = callPackage ../tools/misc/man { };
+  man-old = callPackage ../tools/misc/man { };
 
-  man_db = callPackage ../tools/misc/man-db { };
+  man-db = callPackage ../tools/misc/man-db { };
 
   mawk = callPackage ../tools/text/mawk { };
 
@@ -2753,7 +2762,7 @@ in
     libpng = libpng12;
   };
 
-  oslrd = callPackage ../tools/networking/oslrd { };
+  olsrd = callPackage ../tools/networking/olsrd { };
 
   ossec = callPackage ../tools/security/ossec {};
 
@@ -2795,7 +2804,7 @@ in
 
   pamtester = callPackage ../tools/security/pamtester { };
 
-  paper-gtk-theme = callPackage ../misc/themes/gtk3/paper-gtk-theme { };
+  paper-gtk-theme = callPackage ../misc/themes/paper-gtk-theme { };
 
   par2cmdline = callPackage ../tools/networking/par2cmdline { };
 
@@ -3914,6 +3923,13 @@ in
   xe-guest-utilities = callPackage ../tools/virtualization/xe-guest-utilities { };
 
   xflux = callPackage ../tools/misc/xflux { };
+  xflux-gui = callPackage ../tools/misc/xflux/gui.nix {
+    pexpect = pythonPackages.pexpect;
+    pyGtkGlade = pythonPackages.pyGtkGlade;
+    pygobject = pythonPackages.pygobject;
+    pyxdg = pythonPackages.pyxdg;
+    gnome_python = gnome.gnome_python;
+  };
 
   xfsprogs = callPackage ../tools/filesystems/xfsprogs { };
   libxfs = self.xfsprogs.dev; # outputs TODO
@@ -6138,6 +6154,7 @@ in
   gnumake3 = self.gnumake382;
   gnumake40 = callPackage ../development/tools/build-managers/gnumake/4.0 { };
   gnumake41 = callPackage ../development/tools/build-managers/gnumake/4.1 { };
+  gnumake42 = callPackage ../development/tools/build-managers/gnumake/4.2 { };
   gnumake = self.gnumake41;
 
   gob2 = callPackage ../development/tools/misc/gob2 { };
@@ -6647,6 +6664,8 @@ in
   celt_0_5_1 = callPackage ../development/libraries/celt/0.5.1.nix {};
 
   cegui = callPackage ../development/libraries/cegui {};
+
+  certbot = callPackage ../tools/admin/certbot { };
 
   cgal = callPackage ../development/libraries/CGAL {};
 
@@ -7447,8 +7466,6 @@ in
   leptonica = callPackage ../development/libraries/leptonica {
     libpng = libpng12;
   };
-
-  letsencrypt = callPackage ../tools/admin/letsencrypt { };
 
   lib3ds = callPackage ../development/libraries/lib3ds { };
 
@@ -8607,6 +8624,8 @@ in
 
   pcl = callPackage ../development/libraries/pcl {
     vtk = vtkWithQt4;
+    inherit (darwin) cf-private;
+    inherit (darwin.apple_sdk.frameworks) Cocoa AGL;
   };
 
   pcre = callPackage ../development/libraries/pcre { };
@@ -8755,6 +8774,8 @@ in
   qt5LibsFun = self: with self; {
 
     accounts-qt = callPackage ../development/libraries/accounts-qt { };
+
+    fcitx-qt5 = callPackage ../tools/inputmethods/fcitx/fcitx-qt5.nix { };
 
     grantlee = callPackage ../development/libraries/grantlee/5.x.nix { };
 
@@ -11158,6 +11179,8 @@ in
 
   s3ql = callPackage ../tools/backup/s3ql { };
 
+  sass = callPackage ../development/tools/sass { };
+
   sassc = callPackage ../development/tools/sassc { };
 
   scanmem = callPackage ../tools/misc/scanmem { };
@@ -11581,6 +11604,8 @@ in
   open-dyslexic = callPackage ../data/fonts/open-dyslexic { };
 
   opensans-ttf = callPackage ../data/fonts/opensans-ttf { };
+
+  paper-icon-theme = callPackage ../data/icons/paper-icon-theme { };
 
   pecita = callPackage ../data/fonts/pecita {};
 
@@ -12560,7 +12585,7 @@ in
   };
   wireshark-gtk = wireshark-cli.override { withGtk = true; };
   wireshark-qt = wireshark-cli.override { withQt = true; };
-  wireshark = wireshark-gtk;
+  wireshark = wireshark-qt;
 
   wvdial = callPackage ../os-specific/linux/wvdial { };
 
@@ -12830,6 +12855,8 @@ in
     inherit (gnome) GConf;
   };
 
+  gnome-mpv = callPackage ../applications/video/gnome-mpv { };
+
   gollum = callPackage ../applications/misc/gollum { };
 
   google-chrome = callPackage ../applications/networking/browsers/google-chrome { gconf = gnome.GConf; };
@@ -12876,6 +12903,8 @@ in
   gxmessage = callPackage ../applications/misc/gxmessage { };
 
   hackrf = callPackage ../applications/misc/hackrf { };
+
+  hakuneko = callPackage ../tools/misc/hakuneko { };
 
   hamster-time-tracker = callPackage ../applications/misc/hamster-time-tracker {
     inherit (pythonPackages) pyxdg pygtk dbus sqlite3;
@@ -13655,6 +13684,8 @@ in
 
   paraview = callPackage ../applications/graphics/paraview { };
 
+  pbrt = callPackage ../applications/graphics/pbrt { };
+
   pcsx2 = callPackage_i686 ../misc/emulators/pcsx2 { };
 
   pencil = callPackage ../applications/graphics/pencil { };
@@ -13805,7 +13836,7 @@ in
 
   qjackctl = callPackage ../applications/audio/qjackctl { };
 
-  QmidiNet = callPackage ../applications/audio/QmidiNet { };
+  qmidinet = callPackage ../applications/audio/qmidinet { };
 
   qmidiroute = callPackage ../applications/audio/qmidiroute { };
 
@@ -14549,6 +14580,8 @@ in
 
   wrapFirefox = callPackage ../applications/networking/browsers/firefox/wrapper.nix { };
 
+  wp-cli = callPackage ../development/tools/wp-cli { };
+
   retroArchCores =
     let
       cfg = config.retroarch or {};
@@ -14818,7 +14851,7 @@ in
 
   pahole = callPackage ../development/tools/misc/pahole {};
 
-  yarp = callPackage ../applications/science/misc/yarp {};
+  yarp = callPackage ../applications/science/robotics/yarp {};
 
   yed = callPackage ../applications/graphics/yed {};
 
@@ -15248,7 +15281,7 @@ in
   };
 
   # You still can override by passing more arguments.
-  spaceOrbit = callPackage ../games/orbit { };
+  space-orbit = callPackage ../games/space-orbit { };
 
   spring = callPackage ../games/spring {
     boost = boost155;
@@ -15706,7 +15739,7 @@ in
 
   mate-themes = callPackage ../misc/themes/mate-themes { };
 
-  numix-gtk-theme = callPackage ../misc/themes/gtk3/numix-gtk-theme { };
+  numix-gtk-theme = callPackage ../misc/themes/numix-gtk-theme { };
 
   kde5PackagesFun = self: with self; {
 
@@ -15719,8 +15752,6 @@ in
     colord-kde = callPackage ../tools/misc/colord-kde/0.5.nix {};
 
     dfilemanager = callPackage ../applications/misc/dfilemanager { };
-
-    fcitx-qt5 = callPackage ../tools/inputmethods/fcitx/fcitx-qt5.nix { };
 
     k9copy = callPackage ../applications/video/k9copy {};
 

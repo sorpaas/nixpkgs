@@ -247,6 +247,8 @@ in modules // {
 
   pygame = callPackage ../development/python-modules/pygame { };
 
+  pygame-git = callPackage ../development/python-modules/pygame/git.nix { };
+
   pygobject = callPackage ../development/python-modules/pygobject { };
 
   pygobject3 = callPackage ../development/python-modules/pygobject/3.nix { };
@@ -370,8 +372,29 @@ in modules // {
     };
   };
 
+  acme_0_5_0 = buildPythonPackage rec {
+    version = "0.5.0";
+    name = "acme-${version}";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "letsencrypt";
+      repo = "letsencrypt";
+      rev = "v${version}";
+      sha256 = "0x098cdyfgqvh7x5d3sz56qjpjyg5b4fl82086sm43d8mbz0h5rm";
+    };
+
+    propagatedBuildInputs = with self; [
+      cryptography pyasn1 pyopenssl pyRFC3339 pytz requests2 six werkzeug mock
+      ndg-httpsclient
+    ];
+
+    buildInputs = with self; [ nose ];
+
+    sourceRoot = "letsencrypt-v${version}-src/acme";
+  };
+
   acme = buildPythonPackage rec {
-    inherit (pkgs.letsencrypt) src version;
+    inherit (pkgs.certbot) src version;
 
     name = "acme-${version}";
 
@@ -8433,7 +8456,7 @@ in modules // {
     };
 
     propagatedBuildInputs = with self; [
-      pyGtkGlade pkgs.libtorrentRasterbar twisted Mako chardet pyxdg self.pyopenssl modules.curses
+      pyGtkGlade pkgs.libtorrentRasterbar twisted Mako chardet pyxdg self.pyopenssl modules.curses service-identity
     ];
 
     nativeBuildInputs = [ pkgs.intltool ];
@@ -13222,7 +13245,7 @@ in modules // {
     name = "slixmpp-${version}";
     version = "1.1";
 
-    disabled = (!isPy34);
+    disabled = pythonOlder "3.4";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/s/slixmpp/${name}.tar.gz";
@@ -26385,7 +26408,7 @@ in modules // {
     version = "0.9";
 
     namePrefix = "";
-    disabled = (!isPy34);
+    disabled = pythonOlder "3.4";
 
     buildInputs = with self; [ pytest ];
     propagatedBuildInputs = with self ; [ aiodns slixmpp pyinotify potr ];
@@ -27229,6 +27252,54 @@ in modules // {
     };
   };
 
+  Keras = buildPythonPackage rec {
+    name = "Keras-${version}";
+    version = "1.0.3";
+    disabled = isPy3k;
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/k/keras/${name}.tar.gz";
+      sha256 = "0wi826bvifvy12w490ghj1g45z5xb83q2cadqh425sg56p98khaq";
+    };
+
+    propagatedBuildInputs = with self; [
+      six Theano pyyaml
+    ];
+
+    meta = {
+      description = "Deep Learning library for Theano and TensorFlow";
+      homepage = "https://keras.io";
+      license = licenses.mit;
+      maintainers = with maintainers; [ NikolaMandic ];
+    };
+  };
+
+  Lasagne = buildPythonPackage rec {
+    name = "Lasagne-${version}";
+    version = "0.1";
+    disabled = isPy3k;
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/l/lasagne/${name}.tar.gz";
+      sha256 = "0cqj86rdm6c7y5vq3i13qy76fg5xi3yjp4r0hpqy8hvynv54wqrw";
+    };
+
+    propagatedBuildInputs = with self; [
+      numpy 
+      Theano
+    ];
+
+    # there are no tests
+    doCheck = false;
+
+    meta = {
+      description = "Lightweight library to build and train neural networks in Theano";
+      homepage = "https://github.com/Lasagne/Lasagne";
+      maintainers = with maintainers; [ NikolaMandic ];
+      license = licenses.mit;
+    };
+  };
+
   sigtools = buildPythonPackage rec {
     name = "sigtools-${version}";
     version = "1.1a3";
@@ -27336,6 +27407,72 @@ in modules // {
       description = "TensorFlow helps the tensors flow (no gpu support)";
       homepage = http://tensorflow.org;
       license = licenses.asl20;
+    };
+  };
+
+  simpleai = buildPythonPackage rec {
+     version = "0.7.11";
+     name = "simpleai-${version}";
+
+     src = pkgs.fetchurl {
+       url= "https://pypi.python.org/packages/source/s/simpleai/${name}.tar.gz";
+       sha256 = "03frjc5jxsz9xm24jz7qa4hcp0dicgazrxkdsa2rsnir672lwkwz";
+     };
+
+     propagatedBuildInputs = with self; [ numpy ];
+
+     disabled = isPy3k;
+
+     #No tests in archive
+     doCheck = false;
+
+     meta = {
+       homepage = https://github.com/simpleai-team/simpleai;
+       description = "This lib implements many of the artificial intelligence algorithms described on the book 'Artificial Intelligence, a Modern Approach'";
+       maintainers = with maintainers; [ NikolaMandic ];
+     };
+  };
+
+  tvdb_api = buildPythonPackage rec {
+    name = "tvdb_api-${version}";
+    version = "1.10";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/t/tvdb_api/${name}.tar.gz";
+      sha256 = "0hq887yb3rwc0rcw32lh7xdkk9bbrqy274aspzqkd6f7dyhp73ih";
+    };
+
+    disabled = isPy3k;
+
+    meta = {
+      description = "Simple to use TVDB (thetvdb.com) API in Python.";
+      homepage = "https://github.com/dbr/tvdb_api";
+      license = licenses.unlicense;
+      maintainers = with maintainers; [ peterhoeg ];
+    };
+  };
+
+  tvnamer = buildPythonPackage rec {
+    name = "tvnamer-${version}";
+    version = "2.3";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/t/tvnamer/${name}.tar.gz";
+      sha256 = "15i6qvhwhcx08c96xx3s2841yc7k8gxrqqvhw908c11g0045c2r3";
+    };
+
+    propagatedBuildInputs = with self; [
+      tvdb_api
+    ];
+
+    # tvdb_api isn't working with Python 3
+    disabled = isPy3k;
+
+    meta = {
+      description = "Automatic TV episode file renamer, uses data from thetvdb.com via tvdb_api.";
+      homepage = "https://github.com/dbr/tvnamer";
+      license = licenses.unlicense;
+      maintainers = with maintainers; [ peterhoeg ];
     };
   };
 }
