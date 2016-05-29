@@ -4,12 +4,12 @@ let
   libphutil = fetchgit {
     url    = "git://github.com/phacility/libphutil.git";
     rev    = "b25e0477b280ca3e8345bb97cd55e95bcb5023ec";
-    sha256 = "0dhf2n42qf1dnp6whhfcqf6pllxhfpfv77r5irzjndirp0j1z9kn";
+    sha256 = "04l1am6k3xcjya3dscjb3vacg0fklbzqiv84qqi98rq3b3mgyhz8";
   };
   arcanist = fetchgit {
     url    = "git://github.com/phacility/arcanist.git";
     rev    = "2234c8cacc21ce61c9c10e8e5918b6a63cc38fc8";
-    sha256 = "1ljnk5vhhd0kgc6r1zymnz30c5yyc1yl8wiqmwqb3si4ns580h23";
+    sha256 = "1c0wsgg10v94iy8dwa8pw4qcxafn7nvb9s57x2ps4a08lxakimn0";
   };
 in
 stdenv.mkDerivation rec {
