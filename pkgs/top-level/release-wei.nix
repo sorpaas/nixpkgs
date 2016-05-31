@@ -25,6 +25,7 @@ with import ./release-lib.nix { inherit supportedSystems; };
   bc = linux;
   binutils = linux;
   bind = linux;
+  bumblebee = linux;
   bsdiff = linux;
   bzip2 = linux;
   classpath = linux;
