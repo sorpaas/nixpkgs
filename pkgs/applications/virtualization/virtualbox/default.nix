@@ -47,14 +47,14 @@ let
     sha256 = "11f40842a56ebb17da1bbc82a21543e66108a5330ebd54ded68038a990aa071b";
     message = ''
       In order to use the extension pack, you need to comply with the VirtualBox Personal Use
-      and Evaluation License (PUEL) by downloading the related binaries from:
+      and Evaluation License (PUEL) available at:
 
-      https://www.virtualbox.org/wiki/Downloads
+      https://www.virtualbox.org/wiki/VirtualBox_PUEL
 
-      Once you have downloaded the file, please use the following command and re-run the
-      installation:
+      Once you have read and if you agree with the license, please use the
+      following command and re-run the installation:
 
-      nix-prefetch-url file://${name}
+      nix-prefetch-url http://download.virtualbox.org/virtualbox/${version}/${name}
     '';
   };
 
@@ -133,7 +133,7 @@ in stdenv.mkDerivation {
       ${optionalString (!pulseSupport) "--disable-pulse"} \
       ${optionalString (!enableHardening) "--disable-hardening"} \
       --disable-kmods --with-mkisofs=${xorriso}/bin/xorrisofs
-    sed -e 's@PKG_CONFIG_PATH=.*@PKG_CONFIG_PATH=${libIDL}/lib/pkgconfig:${glib}/lib/pkgconfig ${libIDL}/bin/libIDL-config-2@' \
+    sed -e 's@PKG_CONFIG_PATH=.*@PKG_CONFIG_PATH=${libIDL}/lib/pkgconfig:${glib.dev}/lib/pkgconfig ${libIDL}/bin/libIDL-config-2@' \
         -i AutoConfig.kmk
     sed -e 's@arch/x86/@@' \
         -i Config.kmk

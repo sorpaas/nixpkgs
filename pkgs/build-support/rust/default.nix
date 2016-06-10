@@ -3,6 +3,7 @@
 , src ? null
 , srcs ? null
 , sourceRoot ? null
+, logLevel ? ""
 , buildInputs ? []
 , cargoUpdateHook ? ""
 , ... } @ args:
@@ -42,6 +43,8 @@ in stdenv.mkDerivation (args // {
     EOF
 
     export CARGO_HOME="$(realpath deps)"
+    export RUST_LOG=${logLevel}
+    export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
 
     # Let's find out which $indexHash cargo uses for file:///dev/null
     (cd $sourceRoot && cargo fetch &>/dev/null) || true

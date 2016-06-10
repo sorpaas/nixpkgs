@@ -1,28 +1,28 @@
-{ stdenv, fetchurl, unzip, sqlite }:
+{ stdenv, fetchurl, pkgs, ... }:
 
 stdenv.mkDerivation rec {
   name = "emby-${version}";
-  version = "3.0.5934";
+  version = "3.0.5972";
 
   src = fetchurl {
-    url = "https://github.com/MediaBrowser/Emby/releases/download/${version}/Emby.Mono.zip";
-    sha256 = "1yjplz7i0lwxjnmrra33xxsvza6gj4dblsl4rqjq1qv6i0jarfv1";
+    url = "https://github.com/MediaBrowser/Emby/archive/${version}.tar.gz";
+    sha256 = "0dxm7m8q9w9cknp24gp30v7v8a9q8qph6gy2s1vfli38rwcnakix";
   };
 
-  buildInputs = [ unzip ];
-  propagatedBuildInputs = [ sqlite ];
+  propagatedBuildInputs = with pkgs; [
+    mono
+    sqlite
+  ];
 
-  # Need to set sourceRoot as unpacker will complain about multiple directory output
-  sourceRoot = ".";
-
-  patchPhase = ''
-    substituteInPlace System.Data.SQLite.dll.config --replace libsqlite3.so ${sqlite.out}/lib/libsqlite3.so
-    substituteInPlace MediaBrowser.Server.Mono.exe.config --replace ProgramData-Server "/var/lib/emby/ProgramData-Server"
+  buildPhase = ''
+    xbuild /p:Configuration="Release Mono" /p:Platform="Any CPU" /t:build MediaBrowser.Mono.sln
+    substituteInPlace MediaBrowser.Server.Mono/bin/Release\ Mono/System.Data.SQLite.dll.config --replace libsqlite3.so ${pkgs.sqlite.out}/lib/libsqlite3.so
+    substituteInPlace MediaBrowser.Server.Mono/bin/Release\ Mono/MediaBrowser.Server.Mono.exe.config --replace ProgramData-Server "/var/lib/emby/ProgramData-Server"
   '';
 
   installPhase = ''
     mkdir -p $out/bin
-    cp -r * $out/bin
+    cp -r MediaBrowser.Server.Mono/bin/Release\ Mono/* $out/bin/
   '';
 
   meta = {

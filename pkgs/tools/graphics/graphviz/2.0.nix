@@ -1,5 +1,5 @@
 { stdenv, fetchurl, pkgconfig, xlibsWrapper, libpng, libjpeg, expat, libXaw
-, yacc, libtool, fontconfig, pango, gd
+, yacc, libtool, fontconfig, pango, gd, libwebp
 }:
 
 assert libpng != null && libjpeg != null && expat != null;
@@ -12,14 +12,16 @@ stdenv.mkDerivation rec {
     sha256 = "39b8e1f2ba4cc1f5bdc8e39c7be35e5f831253008e4ee2c176984f080416676c";
   };
 
-  buildInputs = [pkgconfig xlibsWrapper libpng libjpeg expat libXaw yacc libtool fontconfig pango gd];
+  buildInputs = [pkgconfig xlibsWrapper libpng libjpeg expat libXaw yacc
+    libtool fontconfig pango gd libwebp
+    ];
   
   configureFlags =
-    [ "--with-pngincludedir=${libpng}/include"
+    [ "--with-pngincludedir=${libpng.dev}/include"
       "--with-pnglibdir=${libpng.out}/lib"
-      "--with-jpegincludedir=${libjpeg}/include"
+      "--with-jpegincludedir=${libjpeg.dev}/include"
       "--with-jpeglibdir=${libjpeg.out}/lib"
-      "--with-expatincludedir=${expat}/include"
+      "--with-expatincludedir=${expat.dev}/include"
       "--with-expatlibdir=${expat.out}/lib"
     ]
     ++ stdenv.lib.optional (xlibsWrapper == null) "--without-x";

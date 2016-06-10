@@ -10,22 +10,23 @@
 
 let
   system-x86_64 = lib.elem stdenv.system lib.platforms.x86_64;
+  packagedQt = "5.6.0";
 in stdenv.mkDerivation rec {
   name = "telegram-desktop-${version}";
-  version = "0.9.48";
-  qtVersion = lib.replaceStrings ["."] ["_"] qtbase.version;
+  version = "0.9.49";
+  qtVersion = lib.replaceStrings ["."] ["_"] packagedQt;
 
   src = fetchFromGitHub {
     owner = "telegramdesktop";
     repo = "tdesktop";
     rev = "v${version}";
-    sha256 = "1i1f7a9mikq8n08cnwcyywxj7sh1jc6yfj0zd3n7fgfhl0srzvlb";
+    sha256 = "1smz0d07xcpv7kv5v739b5a8wrgv5fx0wy15d3zzm3s69418a6nc";
   };
 
   tgaur = fetchgit {
     url = "https://aur.archlinux.org/telegram-desktop.git";
     rev = "f8907d1ccaf8345c06232238342921213270e3d8";
-    sha256 = "1fsp098ykpf5gynn3lq3qcj3a47bkjfr0l96pymmmfd4a2s1690v";
+    sha256 = "04jh0fsrh4iwg188d20z15qkxv05wa5lpd8h21yxx3jxqljpdkws";
   };
 
   buildInputs = [
@@ -46,14 +47,14 @@ in stdenv.mkDerivation rec {
     "CONFIG+=release"
     "DEFINES+=TDESKTOP_DISABLE_AUTOUPDATE"
     "DEFINES+=TDESKTOP_DISABLE_REGISTER_CUSTOM_SCHEME"
-    "INCLUDEPATH+=${gtk2}/include/gtk-2.0"
-    "INCLUDEPATH+=${glib}/include/glib-2.0"
+    "INCLUDEPATH+=${gtk2.dev}/include/gtk-2.0"
+    "INCLUDEPATH+=${glib.dev}/include/glib-2.0"
     "INCLUDEPATH+=${glib.out}/lib/glib-2.0/include"
-    "INCLUDEPATH+=${cairo}/include/cairo"
-    "INCLUDEPATH+=${pango}/include/pango-1.0"
+    "INCLUDEPATH+=${cairo.dev}/include/cairo"
+    "INCLUDEPATH+=${pango.dev}/include/pango-1.0"
     "INCLUDEPATH+=${gtk2.out}/lib/gtk-2.0/include"
-    "INCLUDEPATH+=${gdk_pixbuf}/include/gdk-pixbuf-2.0"
-    "INCLUDEPATH+=${atk}/include/atk-1.0"
+    "INCLUDEPATH+=${gdk_pixbuf.dev}/include/gdk-pixbuf-2.0"
+    "INCLUDEPATH+=${atk.dev}/include/atk-1.0"
     "INCLUDEPATH+=${libappindicator-gtk2}/include/libappindicator-0.1"
     "INCLUDEPATH+=${libunity}/include/unity"
     "INCLUDEPATH+=${dee}/include/dee-1.0"
@@ -63,7 +64,7 @@ in stdenv.mkDerivation rec {
     "LIBS+=-lssl"
   ];
 
-  qtSrcs = qtbase.srcs ++ [ qtimageformats.src ];
+  qtSrcs = [ qtbase.src qtimageformats.src ];
   qtPatches = qtbase.patches;
 
   buildCommand = ''
@@ -79,7 +80,8 @@ in stdenv.mkDerivation rec {
       -e 's,LIBS += .*libz.a,LIBS += -lz,' \
       -e 's,LIBS += .*libbreakpad_client.a,LIBS += ${breakpad}/lib/libbreakpad_client.a,' \
       -e 's, -flto,,g' \
-      -e 's, -static-libstdc++,,g'
+      -e 's, -static-libstdc++,,g' \
+      -e 's,${packagedQt},${qtbase.version},g'
 
     export QMAKE=$PWD/../qt/bin/qmake
     ( mkdir -p ../Libraries
@@ -87,18 +89,15 @@ in stdenv.mkDerivation rec {
       for i in $qtSrcs; do
         tar -xaf $i
       done
-      mv qt-everywhere-opensource-src-* QtStatic
-      mv qtbase-opensource-src-* ./QtStatic/qtbase
-      mv qtimageformats-opensource-src-* ./QtStatic/qtimageformats
-      cd QtStatic/qtbase
-      patch -p1 < ../../../$sourceRoot/Telegram/Patches/qtbase_${qtVersion}.diff
-      cd ..
+      cd qtbase-*
+      patch -p1 < ../../$sourceRoot/Telegram/Patches/qtbase_${qtVersion}.diff
       for i in $qtPatches; do
         patch -p1 < $i
       done
       ${qtbase.postPatch}
+      cd ..
 
-      export configureFlags="-prefix "$PWD/../../qt" -release -opensource -confirm-license -system-zlib \
+      export configureFlags="-prefix "$PWD/../qt" -release -opensource -confirm-license -system-zlib \
         -system-libpng -system-libjpeg -system-freetype -system-harfbuzz -system-pcre -system-xcb \
         -system-xkbcommon-x11 -no-opengl -static -nomake examples -nomake tests \
         -openssl-linked -dbus-linked -system-sqlite -verbose \
@@ -107,13 +106,13 @@ in stdenv.mkDerivation rec {
       export dontAddPrefix=1
       export MAKEFLAGS=-j$NIX_BUILD_CORES
 
-      ( cd qtbase
+      ( cd qtbase-*
         configurePhase
         buildPhase
         make install
       )
 
-      ( cd qtimageformats
+      ( cd qtimageformats-*
         $QMAKE
         buildPhase
         make install
@@ -160,6 +159,6 @@ in stdenv.mkDerivation rec {
     license = licenses.gpl3;
     platforms = platforms.linux;
     homepage = "https://desktop.telegram.org/";
-    maintainers = with maintainers; [ abbradar ];
+    maintainers = with maintainers; [ abbradar garbas ];
   };
 }

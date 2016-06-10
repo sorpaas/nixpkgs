@@ -32838,7 +32838,7 @@
     src = fetchgit {
       url = "git://github.com/NixOS/npm2nix.git";
       rev = "0c06be7d278a7f64fc853a5fd42d2031d14496d5";
-      sha256 = "fb79dccb5ca4bfa0c8cc4490be37313367eb98e216d8eb97cb00f9e492e8e7a7";
+      sha256 = "1x8bsmli0s1l3vshw5ylmak9z1pvnc1ps5cbc72cbn1zi36m5cp1";
     };
     deps = {
       "semver-4.3.6" = self.by-version."semver"."4.3.6";
@@ -35809,7 +35809,7 @@
     src = fetchgit {
       url = "https://github.com/tstarling/pegjs";
       rev = "9162b1e114e41992dd0fdafa24d2574a0b8a836a";
-      sha256 = "11f0b6b159709bc7c9223c0c8013b3e307b87ea6bbfcf615b804b2d67fe3813a";
+      sha256 = "1aj0vgdwyir7z4aals6njrd92as27bflhlm5bp0fgi0lvvlwinnh";
     };
     deps = {
     };

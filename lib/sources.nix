@@ -4,6 +4,11 @@ let lib = import ./default.nix; in
 
 rec {
 
+  # Returns the type of a path: regular (for file), symlink, or directory
+  pathType = p: with builtins; getAttr (baseNameOf p) (readDir (dirOf p));
+
+  # Returns true if the path exists and is a directory, false otherwise
+  pathIsDirectory = p: if builtins.pathExists p then (pathType p) == "directory" else false;
 
   # Bring in a path as a source, filtering out all Subversion and CVS
   # directories, as well as backup files (*~).
@@ -29,4 +34,31 @@ rec {
       in type == "directory" || lib.any (ext: lib.hasSuffix ext base) exts;
     in builtins.filterSource filter path;
 
+
+  # Get the commit id of a git repo
+  # Example: commitIdFromGitRepo <nixpkgs/.git>
+  commitIdFromGitRepo =
+    let readCommitFromFile = path: file:
+      with builtins;
+        let fileName       = toString path + "/" + file;
+            packedRefsName = toString path + "/packed-refs";
+        in if lib.pathExists fileName
+           then
+             let fileContent = readFile fileName;
+                 # Sometimes git stores the commitId directly in the file but
+                 # sometimes it stores something like: «ref: refs/heads/branch-name»
+                 matchRef    = match "^ref: (.*)\n$" fileContent;
+             in if   isNull matchRef
+                then lib.removeSuffix "\n" fileContent
+                else readCommitFromFile path (lib.head matchRef)
+           # Sometimes, the file isn't there at all and has been packed away in the
+           # packed-refs file, so we have to grep through it:
+           else if lib.pathExists packedRefsName
+           then
+             let packedRefs  = lib.splitString "\n" (readFile packedRefsName);
+                 matchRule   = match ("^(.*) " + file + "$");
+                 matchedRefs = lib.flatten (lib.filter (m: ! (isNull m)) (map matchRule packedRefs));
+             in lib.head matchedRefs
+           else throw ("Not a .git directory: " + path);
+    in lib.flip readCommitFromFile "HEAD";
 }

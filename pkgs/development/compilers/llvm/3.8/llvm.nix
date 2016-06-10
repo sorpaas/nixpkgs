@@ -57,7 +57,7 @@ in stdenv.mkDerivation rec {
   ] ++ stdenv.lib.optional enableSharedLibraries [
     "-DLLVM_LINK_LLVM_DYLIB=ON"
   ] ++ stdenv.lib.optional (!isDarwin)
-    "-DLLVM_BINUTILS_INCDIR=${binutils}/include"
+    "-DLLVM_BINUTILS_INCDIR=${binutils.dev}/include"
     ++ stdenv.lib.optionals ( isDarwin) [
     "-DLLVM_ENABLE_LIBCXX=ON"
     "-DCAN_TARGET_i386=false"
@@ -67,10 +67,6 @@ in stdenv.mkDerivation rec {
     rm -fR $out
 
     paxmark m bin/{lli,llvm-rtdyld}
-
-    paxmark m unittests/ExecutionEngine/JIT/JITTests
-    paxmark m unittests/ExecutionEngine/MCJIT/MCJITTests
-    paxmark m unittests/Support/SupportTests
   '';
 
   enableParallelBuilding = true;

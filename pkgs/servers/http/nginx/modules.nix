@@ -55,7 +55,7 @@
     src = "${pkgs.modsecurity_standalone.nginx}/nginx/modsecurity";
     inputs = [ pkgs.curl pkgs.apr pkgs.aprutil pkgs.apacheHttpd pkgs.yajl ];
     preConfigure = ''
-      export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I${pkgs.aprutil}/include/apr-1 -I${pkgs.apacheHttpd}/include -I${pkgs.apr}/include/apr-1 -I${pkgs.yajl}/include"
+      export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I${pkgs.aprutil.dev}/include/apr-1 -I${pkgs.apacheHttpd.dev}/include -I${pkgs.apr.dev}/include/apr-1 -I${pkgs.yajl}/include"
     '';
   };
 
@@ -81,8 +81,8 @@
     src = fetchFromGitHub {
       owner = "openresty";
       repo = "lua-nginx-module";
-      rev = "v0.10.0";
-      sha256 = "0isdqrnjhfy4zlydj4csf91i9184ykazyah3i63jfrmmarxr5li1";
+      rev = "v0.10.5";
+      sha256 = "0wz5j4kqa6hk7ar42bkxp0hd74psjy6sfsldh1a6p93z349iz4v5";
     };
     inputs = [ pkgs.luajit ];
     preConfigure = ''

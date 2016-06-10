@@ -48,12 +48,13 @@ let
       bootPath = args.path;
       storePath = config.boot.loader.grub.storePath;
       bootloaderId = if args.efiBootloaderId == null then "NixOS${efiSysMountPoint'}" else args.efiBootloaderId;
+      timeout = if config.boot.loader.timeout == null then -1 else config.boot.loader.timeout;
       inherit efiSysMountPoint;
       inherit (args) devices;
       inherit (efi) canTouchEfiVariables;
       inherit (cfg)
         version extraConfig extraPerEntryConfig extraEntries
-        extraEntriesBeforeNixOS extraPrepareConfig configurationLimit copyKernels timeout
+        extraEntriesBeforeNixOS extraPrepareConfig configurationLimit copyKernels
         default fsIdentifier efiSupport gfxmodeEfi gfxmodeBios;
       path = (makeBinPath ([
         pkgs.coreutils pkgs.gnused pkgs.gnugrep pkgs.findutils pkgs.diffutils pkgs.btrfs-progs
@@ -313,14 +314,6 @@ in
         '';
       };
 
-      timeout = mkOption {
-        default = if (config.boot.loader.timeout != null) then config.boot.loader.timeout else -1;
-        type = types.int;
-        description = ''
-          Timeout (in seconds) until GRUB boots the default menu item.
-        '';
-      };
-
       default = mkOption {
         default = 0;
         type = types.int;
@@ -495,7 +488,7 @@ in
         }
         {
           assertion = if args.efiSysMountPoint == null then true else hasPrefix "/" args.efiSysMountPoint;
-          message = "Efi paths must be absolute, not ${args.efiSysMountPoint}";
+          message = "EFI paths must be absolute, not ${args.efiSysMountPoint}";
         }
       ] ++ flip map args.devices (device: {
         assertion = device == "nodev" || hasPrefix "/" device;

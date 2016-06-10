@@ -28,7 +28,15 @@ stdenv.mkDerivation rec {
 
   patches = [ ./0001-fix-gcc-cmath-namespace-issues.patch ];
 
+  preConfigure = ''
+    mkdir build
+    cd build
+  '';
+
+  qmakeFlags = [ "../qgroundcontrol.pro" ];
+
   installPhase = ''
+    cd ..
     mkdir -p $out/share/applications
     cp -v qgroundcontrol.desktop $out/share/applications
     
@@ -66,7 +74,7 @@ stdenv.mkDerivation rec {
   src = fetchgit {
     url = "https://github.com/mavlink/qgroundcontrol.git";
     rev = "refs/tags/v${version}";
-    sha256 = "0rwn2ddlar58ydzdykvnab1anr4xzvb9x0sxx5rs037i49f6sqga";
+    sha256 = "0isr0zamhvr853c94lblazkilil6zzmvf7afs3mxgn07jn9wrqz3";
     fetchSubmodules = true;
   };
 

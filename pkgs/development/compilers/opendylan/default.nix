@@ -7,7 +7,7 @@ stdenv.mkDerivation {
   src = fetchgit {
     url = https://github.com/dylan-lang/opendylan;
     rev = "ce9b14dab6cb9ffedc69fae8c6df524c0c79abd3";
-    sha256 = "cec80980b838ac2581dfb6282e25d208e720d475256b75e24b23dbd30b09d21f";
+    sha256 = "17jvhv0y63fj25ma05k70b7phcwgjyna5qkrirk48z3xapb8bknd";
     fetchSubmodules = true;
   };
 
@@ -24,7 +24,7 @@ stdenv.mkDerivation {
     ./autogen.sh
   '';
 
-  configureFlags = if stdenv.system == "i686-linux" then "--with-mps=$(TMPDIR)/mps" else "--with-gc=${boehmgc}";
+  configureFlags = if stdenv.system == "i686-linux" then "--with-mps=$(TMPDIR)/mps" else "--with-gc=${boehmgc.dev}";
   buildPhase = "make 3-stage-bootstrap";
 
   postInstall = "wrapProgram $out/bin/dylan-compiler --suffix PATH : ${gcc}/bin";

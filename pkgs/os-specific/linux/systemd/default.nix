@@ -2,7 +2,7 @@
 , zlib, xz, pam, acl, cryptsetup, libuuid, m4, utillinux, libffi
 , glib, kbd, libxslt, coreutils, libgcrypt, libgpgerror, libapparmor, audit, lz4
 , kexectools, libmicrohttpd, linuxHeaders ? stdenv.cc.libc.linuxHeaders, libseccomp
-, iptables
+, iptables, gnu-efi
 , autoreconfHook, gettext, docbook_xsl, docbook_xml_dtd_42, docbook_xml_dtd_45
 , enableKDbus ? false
 }:
@@ -10,14 +10,14 @@
 assert stdenv.isLinux;
 
 stdenv.mkDerivation rec {
-  version = "229";
+  version = "230";
   name = "systemd-${version}";
 
   src = fetchFromGitHub {
     owner = "NixOS";
     repo = "systemd";
-    rev = "4936f6e6c05162516a685ebd227b55816cf2b670";
-    sha256 = "1q0pyrljmq73qcan9rfqsiw66l1g159m5in5qgb8zwlwhl928670";
+    rev = "4ccee551f2ba8383c8b9bd06590a3cd1dfdf690f";
+    sha256 = "1i4my5z7f8g5bykv1vxyw1az66s087lfqrck79kdm4hgvb4lsk6y";
   };
 
   patches = [ ./hwdb-location.diff ];
@@ -34,7 +34,7 @@ stdenv.mkDerivation rec {
     [ linuxHeaders pkgconfig intltool gperf libcap kmod xz pam acl
       /* cryptsetup */ libuuid m4 glib libxslt libgcrypt libgpgerror
       libmicrohttpd kexectools libseccomp libffi audit lz4 libapparmor
-      iptables
+      iptables gnu-efi
       /* FIXME: we may be able to prevent the following dependencies
          by generating an autoconf'd tarball, but that's probably not
          worth it. */
@@ -71,6 +71,11 @@ stdenv.mkDerivation rec {
       "--disable-quotacheck"
       "--disable-ldconfig"
       "--disable-smack"
+
+      (if stdenv.isArm then "--disable-gnuefi" else "--enable-gnuefi")
+      "--with-efi-libdir=${gnu-efi}/lib"
+      "--with-efi-includedir=${gnu-efi}/include"
+      "--with-efi-ldsdir=${gnu-efi}/lib"
 
       "--with-sysvinit-path="
       "--with-sysvrcnd-path="

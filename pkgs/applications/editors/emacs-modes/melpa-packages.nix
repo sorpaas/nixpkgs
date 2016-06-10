@@ -37,7 +37,7 @@ self:
 
     overrides = {
       ac-php = super.ac-php.override {
-        inherit (self.melpaPackages) company popup;
+        inherit (self.melpaPackages) popup;
       };
 
       # upstream issue: mismatched filename
@@ -59,9 +59,6 @@ self:
 
       # upstream issue: missing file header
       connection = markBroken super.connection;
-
-      # upstream issue: missing file header
-      crux = markBroken super.crux;
 
       # upstream issue: missing file header
       dictionary = markBroken super.dictionary;
