@@ -12,11 +12,11 @@
 buildPythonApplication rec {
 
   name = "youtube-dl-${version}";
-  version = "2016.05.21.2";
+  version = "2016.06.27";
 
   src = fetchurl {
-    url = "http://yt-dl.org/downloads/${version}/${name}.tar.gz";
-    sha256 = "66f94fc97012c4c7a6338dc4df6ec62af66dcfc144c5e8c8cd8b5519756f1a98";
+    url = "https://yt-dl.org/downloads/${version}/${name}.tar.gz";
+    sha256 = "1kwv20kmb0xnlpkbnsc27abw9cv0gkzbzwzzp4qw5mg3naqkmjvc";
   };
 
   buildInputs = [ makeWrapper zip pandoc ];
