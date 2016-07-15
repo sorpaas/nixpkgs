@@ -239,6 +239,8 @@ in {
 
     environment.systemPackages = [ cfg.package ];
 
+    environment.systemPackages = [ cfg.package ];
+
     systemd.services.grafana = {
       description = "Grafana Service Daemon";
       wantedBy = ["multi-user.target"];
