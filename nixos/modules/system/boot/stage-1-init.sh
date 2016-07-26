@@ -14,6 +14,8 @@ export LVM_SUPPRESS_FD_WARNINGS=true
 fail() {
     if [ -n "$panicOnFail" ]; then exit 1; fi
 
+    @preFailCommands@
+
     # If starting stage 2 failed, allow the user to repair the problem
     # in an interactive shell.
     cat <<EOF
@@ -168,10 +170,6 @@ mkdir -p /dev/.mdadm
 systemd-udevd --daemon
 udevadm trigger --action=add
 udevadm settle
-
-
-# Load boot-time keymap before any LVM/LUKS initialization
-@extraUtils@/bin/busybox loadkmap < "@busyboxKeymap@"
 
 
 # XXX: Use case usb->lvm will still fail, usb->luks->lvm is covered
