@@ -144,7 +144,7 @@ in
         let
           cpath = "${cfg.directory}/${cert}";
           rights = if data.allowKeysForGroup then "750" else "700";
-          cmdline = [ "-v" "-d" cert "--default_root" data.webroot "--valid_min" cfg.validMin ]
+          cmdline = [ "-v" "-d" cert "--default_root" data.webroot "--valid_min" cfg.validMin "--tos_sha256" "6373439b9f29d67a5cd4d18cbc7f264809342dbf21cb2ba2fc7588df987a6221" ]
                     ++ optionals (data.email != null) [ "--email" data.email ]
                     ++ concatMap (p: [ "-f" p ]) data.plugins
                     ++ concatLists (mapAttrsToList (name: root: [ "-d" (if root == null then name else "${name}:${root}")]) data.extraDomains);
