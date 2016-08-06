@@ -6956,6 +6956,15 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
+  Later = buildPerlPackage rec {
+    version = "0.19";
+    name = "Object-Realize-Later-${version}";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/M/MA/MARKOV/${name}.tar.gz";
+      sha256 = "0ka0qar51kk5wlvd2s3yis3w9qc14h0ngn0ds0v6c8ssmjvfcgbz";
+    };
+  };
+
   lib_ = buildPerlPackage {
     name = "lib-0.63";
     src = fetchurl {
@@ -7599,6 +7608,36 @@ let self = _self // overrides; _self = with self; {
 
   maatkit = import ../development/perl-modules/maatkit {
     inherit fetchurl buildPerlPackage stdenv DBDmysql;
+  };
+
+  MailMaildir = buildPerlPackage rec {
+    version = "1.0.0";
+    name = "Mail-Maildir-${version}";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/Z/ZE/ZEROALTI/Mail-Maildir-100/${name}.tar.bz2";
+      sha256 = "1krkqfps6q3ifrhi9450l5gm9199qyfcm6vidllr0dv65kdaqpj4";
+    };
+  };
+
+  MailBox = buildPerlPackage rec {
+    version = "2.118";
+    name = "Mail-Box-${version}";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/M/MA/MARKOV/${name}.tar.gz";
+      sha256 = "1ixi7xpvj8kn2y0l8rxkvdnnl7x5wqg7mi2av0viwdh5l828dcfc";
+    };
+
+    doCheck = false;
+
+    propagatedBuildInputs = [
+      Later
+
+      DevelGlobalDestruction
+      FileRemove
+      IOStringy
+      MailTools
+      MIMETypes
+    ];
   };
 
   MailMboxMessageParser = buildPerlPackage rec {
@@ -9539,10 +9578,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   NetSSLeay = buildPerlPackage rec {
-    name = "Net-SSLeay-1.72";
+    name = "Net-SSLeay-1.77";
     src = fetchurl {
       url = "mirror://cpan/authors/id/M/MI/MIKEM/${name}.tar.gz";
-      sha256 = "1x6jjmhvsdq488k6wdg58ajnr4dmbcbk7imyv0aybkhj1ygw7ahv";
+      sha256 = "06h6wbr923jxmazmv5shdg1767s7r60bvzcza52dk31yckks6l31";
     };
     buildInputs = [ pkgs.openssl ];
     doCheck = false; # Test performs network access.
@@ -14353,13 +14392,18 @@ let self = _self // overrides; _self = with self; {
     makeMakerFlags = "EXPATLIBPATH=${pkgs.expat.out}/lib EXPATINCPATH=${pkgs.expat.dev}/include";
   };
 
-  XMLXPath = buildPerlPackage {
-    name = "XML-XPath-1.13";
+  XMLXPath = buildPerlPackage rec {
+    name = "XML-XPath-1.37";
     src = fetchurl {
-      url = mirror://cpan/authors/id/M/MS/MSERGEANT/XML-XPath-1.13.tar.gz;
-      sha256 = "0xjmfwda7m3apj7yrjzmkm4sjwnz4bqyaynzgcwqhx806kgw4j9a";
+      url = "mirror://cpan/authors/id/M/MA/MANWAR/${name}.tar.gz";
+      sha256 = "b8ae1196184f794528a9727988dce944ecec7155e6ee1c433b17e12737a22725";
     };
-    propagatedBuildInputs = [XMLParser];
+    buildInputs = [ PathTiny ];
+    propagatedBuildInputs = [ XMLParser ];
+    meta = {
+      description = "Modules for parsing and evaluating XPath statements";
+      license = stdenv.lib.licenses.artistic2;
+    };
   };
 
   XMLXPathEngine = buildPerlPackage {

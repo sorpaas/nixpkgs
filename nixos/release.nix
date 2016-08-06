@@ -7,7 +7,7 @@ with import ../lib;
 
 let
 
-  version = builtins.readFile ../.version;
+  version = fileContents ../.version;
   versionSuffix =
     (if stableBranch then "." else "pre") + "${toString nixpkgs.revCount}.${nixpkgs.shortRev}";
 
@@ -95,7 +95,7 @@ in rec {
   channel = import lib/make-channel.nix { inherit pkgs nixpkgs version versionSuffix; };
 
   manual = buildFromConfig ({ pkgs, ... }: { }) (config: config.system.build.manual.manual);
-  manualPDF = (buildFromConfig ({ pkgs, ... }: { }) (config: config.system.build.manual.manualPDF)).x86_64-linux;
+  manualEpub = (buildFromConfig ({ pkgs, ... }: { }) (config: config.system.build.manual.manualEpub));
   manpages = buildFromConfig ({ pkgs, ... }: { }) (config: config.system.build.manual.manpages);
   options = (buildFromConfig ({ pkgs, ... }: { }) (config: config.system.build.manual.optionsJSON)).x86_64-linux;
 
@@ -217,6 +217,7 @@ in rec {
   tests.containers-ipv6 = callTest tests/containers-ipv6.nix {};
   tests.containers-bridge = callTest tests/containers-bridge.nix {};
   tests.containers-imperative = callTest tests/containers-imperative.nix {};
+  tests.containers-extra_veth = callTest tests/containers-extra_veth.nix {};
   tests.docker = hydraJob (import tests/docker.nix { system = "x86_64-linux"; });
   tests.dockerRegistry = hydraJob (import tests/docker-registry.nix { system = "x86_64-linux"; });
   tests.dnscrypt-proxy = callTest tests/dnscrypt-proxy.nix { system = "x86_64-linux"; };

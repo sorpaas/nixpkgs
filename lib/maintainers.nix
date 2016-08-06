@@ -259,6 +259,7 @@
   moretea = "Maarten Hoogendoorn <maarten@moretea.nl>";
   mornfall = "Petr Ročkai <me@mornfall.net>";
   MostAwesomeDude = "Corbin Simpson <cds@corbinsimpson.com>";
+  mounium = "Katona László <muoniurn@gmail.com>";
   MP2E = "Cray Elliott <MP2E@archlinux.us>";
   mpscholten = "Marc Scholten <marc@mpscholten.de>";
   msackman = "Matthew Sackman <matthew@wellquite.org>";
@@ -338,6 +339,7 @@
   robberer = "Longrin Wischnewski <robberer@freakmail.de>";
   robbinch = "Robbin C. <robbinch33@gmail.com>";
   robgssp = "Rob Glossop <robgssp@gmail.com>";
+  roblabla = "Robin Lambertz <robinlambertz+dev@gmail.com>";
   roconnor = "Russell O'Connor <roconnor@theorem.ca>";
   romildo = "José Romildo Malaquias <malaquias@gmail.com>";
   rszibele = "Richard Szibele <richard_szibele@hotmail.com>";

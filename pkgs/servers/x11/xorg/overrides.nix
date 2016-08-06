@@ -41,10 +41,6 @@ in
       '';
   };
 
-  glamoregl = attrs: attrs // {
-    installFlags = "sdkdir=\${out}/include/xorg configdir=\${out}/share/X11/xorg.conf.d";
-  };
-
   imake = attrs: attrs // {
     inherit (xorg) xorgcffiles;
     x11BuildHook = ./imake.sh;
@@ -248,6 +244,10 @@ in
     outputs = [ "dev" "out" ]; # mainly to avoid propagation
   };
 
+  libpciaccess = attrs: attrs // {
+    meta = attrs.meta // { platforms = stdenv.lib.platforms.linux; };
+  };
+
   setxkbmap = attrs: attrs // {
     postInstall =
       ''
@@ -270,7 +270,7 @@ in
 
   xcbutilcursor = attrs: attrs // {
     outputs = [ "dev" "out" ];
-    meta.maintainers = [ stdenv.lib.maintainers.lovek323 ];
+    meta = attrs.meta // { maintainers = [ stdenv.lib.maintainers.lovek323 ]; };
   };
 
   xcbutilimage = attrs: attrs // {
@@ -324,7 +324,7 @@ in
   };
 
   xf86videoati = attrs: attrs // {
-    NIX_CFLAGS_COMPILE = "-I${xorg.glamoregl}/include/xorg";
+    NIX_CFLAGS_COMPILE = "-I${xorg.xorgserver}/include/xorg";
   };
 
   xf86videonv = attrs: attrs // {
@@ -418,7 +418,7 @@ in
       then {
         outputs = [ "dev" "out" ];
         buildInputs = [ makeWrapper ] ++ commonBuildInputs;
-        propagatedBuildInputs = [ libpciaccess ] ++ commonPropagatedBuildInputs ++ lib.optionals stdenv.isLinux [
+        propagatedBuildInputs = [ libpciaccess args.epoxy ] ++ commonPropagatedBuildInputs ++ lib.optionals stdenv.isLinux [
           args.udev
         ];
         patches = commonPatches;
@@ -428,6 +428,7 @@ in
           "--enable-xcsecurity"         # enable SECURITY extension
           "--with-default-font-path="   # there were only paths containing "${prefix}",
                                         # and there are no fonts in this package anyway
+          "--enable-glamor"
         ];
         postInstall = ''
           rm -fr $out/share/X11/xkb/compiled

@@ -36,7 +36,7 @@ self: super: {
     src = pkgs.fetchFromGitHub {
       owner = "joeyh";
       repo = "git-annex";
-      sha256 = "1b154qskvcldk4kyzcbaw6mijrsn9327wldxwcv16a8zz39gvc5r";
+      sha256 = "1b4yw305h7ca28x8s2jnkcc9cwn3rygnjyarib33dk4z066lsg7s";
       rev = drv.version;
     };
   })).override {
@@ -947,8 +947,18 @@ self: super: {
     sha256 = "1yh2g45mkfpwxq0vyzcbc4nbxh6wmb2xpp0k7r5byd8jicgvli29";
   });
 
-  # Glob depends conditionally on semigroups for GHC < 8
-  Glob = if pkgs.lib.versionAtLeast self.ghc.version "8.0"
-    then super.Glob
-    else addBuildDepend super.Glob self.semigroups;
+  # https://github.com/GaloisInc/HaNS/pull/12
+  hans = overrideCabal super.hans (drv: {
+    src = pkgs.fetchFromGitHub {
+      owner = "GaloisInc";
+      repo = "HaNS";
+      rev = "53e4af3ee46fc06b31754cec620209a81bbef456";
+      sha256 = "079205fqglzhh931h4n7qlrih18117m3w82ih19b8ygr55ps4ldj";
+    };
+    doHaddock = false;
+    patches = [(pkgs.fetchpatch {
+          url = "https://patch-diff.githubusercontent.com/raw/GaloisInc/HaNS/pull/12.patch";
+          sha256 = "0xa5b7i9wx32ji0zzlh1a1pws677iffby3bg39kv3c9srdb4by1g";
+      })];
+  });
 }
