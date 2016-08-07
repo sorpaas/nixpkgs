@@ -14,7 +14,7 @@ composableDerivation.composableDerivation {} {
   mergeAttrBy.audioModes = a : b : "${a},${b}";
 
   preConfigure = ''
-    configureFlags="$configureFlags --enable-audio=$audioModes"
+    configureFlags="$configureFlags --enable-audio=$audioModes --enable-server"
   '';
 
   # configure still has many more options...
@@ -26,7 +26,7 @@ composableDerivation.composableDerivation {} {
       audioModes = "alsa";
       buildInputs = [alsaLib];
       # this is better than /dev/dsp !
-      configureFlags = ["--with-default-output-mode=alsa"];
+      configureFlags = ["--with-default-output-mode=alsa -enable-alsaseq"];
     };
     jack = {
       audioModes = "jack";
