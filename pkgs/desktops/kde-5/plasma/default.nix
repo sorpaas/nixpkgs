@@ -67,6 +67,7 @@ let
     kscreenlocker = callPackage ./kscreenlocker.nix {};
     ksshaskpass = callPackage ./ksshaskpass.nix {};
     ksysguard = callPackage ./ksysguard.nix {};
+    kwallet-pam = callPackage ./kwallet-pam.nix {};
     kwayland-integration = callPackage ./kwayland-integration.nix {};
     kwin = callPackage ./kwin {};
     kwrited = callPackage ./kwrited.nix {};
@@ -76,7 +77,6 @@ let
     oxygen = callPackage ./oxygen.nix {};
     plasma-desktop = callPackage ./plasma-desktop {};
     plasma-integration = callPackage ./plasma-integration.nix {};
-    plasma-mediacenter = callPackage ./plasma-mediacenter.nix {};
     plasma-nm = callPackage ./plasma-nm {};
     plasma-pa = callPackage ./plasma-pa.nix {};
     plasma-workspace = callPackage ./plasma-workspace {};

@@ -37,9 +37,10 @@
   ./hardware/network/rtl8192c.nix
   ./hardware/opengl.nix
   ./hardware/pcmcia.nix
+  ./hardware/video/amdgpu.nix
+  ./hardware/video/ati.nix
   ./hardware/video/bumblebee.nix
   ./hardware/video/nvidia.nix
-  ./hardware/video/ati.nix
   ./hardware/video/webcam/facetimehd.nix
   ./i18n/input-method/default.nix
   ./i18n/input-method/fcitx.nix
@@ -62,8 +63,7 @@
   ./programs/bash/bash.nix
   ./programs/blcr.nix
   ./programs/cdemu.nix
-  # see https://github.com/NixOS/nixos-channel-scripts/issues/4
-  #./programs/command-not-found/command-not-found.nix
+  ./programs/command-not-found/command-not-found.nix
   ./programs/dconf.nix
   ./programs/environment.nix
   ./programs/freetds.nix
@@ -80,7 +80,6 @@
   ./programs/ssh.nix
   ./programs/ssmtp.nix
   ./programs/tmux.nix
-  ./programs/unity3d.nix
   ./programs/venus.nix
   ./programs/wvdial.nix
   ./programs/xfs_quota.nix
@@ -174,6 +173,7 @@
   ./services/games/ghost-one.nix
   ./services/games/minecraft-server.nix
   ./services/games/minetest-server.nix
+  ./services/games/terraria.nix
   ./services/hardware/acpid.nix
   ./services/hardware/actkbd.nix
   ./services/hardware/amd-hybrid-graphics.nix
@@ -335,12 +335,14 @@
   ./services/networking/docker-registry-server.nix
   ./services/networking/ejabberd.nix
   ./services/networking/fan.nix
+  ./services/networking/ferm.nix
   ./services/networking/firefox/sync-server.nix
   ./services/networking/firewall.nix
   ./services/networking/flashpolicyd.nix
   ./services/networking/freenet.nix
   ./services/networking/gale.nix
   ./services/networking/gateone.nix
+  ./services/networking/gdomap.nix
   ./services/networking/git-daemon.nix
   ./services/networking/gnunet.nix
   ./services/networking/gogoclient.nix
@@ -464,6 +466,7 @@
   ./services/ttys/agetty.nix
   ./services/ttys/gpm.nix
   ./services/ttys/kmscon.nix
+  ./services/web-apps/mattermost.nix
   ./services/web-apps/pump.io.nix
   ./services/web-apps/tt-rss.nix
   ./services/web-servers/apache-httpd/default.nix
@@ -475,7 +478,7 @@
   ./services/web-servers/lighttpd/gitweb.nix
   ./services/web-servers/lighttpd/inginious.nix
   ./services/web-servers/nginx/default.nix
-  ./services/web-servers/phpfpm.nix
+  ./services/web-servers/phpfpm/default.nix
   ./services/web-servers/shellinabox.nix
   ./services/web-servers/tomcat.nix
   ./services/web-servers/uwsgi.nix

@@ -10,6 +10,8 @@ stdenv.mkDerivation rec {
     sha256 = "15cd1cx1dyygw6g2nhjqq3bsfdj8sj8m4va9n75i0f3ryww3x7wq";
   };
 
+  hardeningDisable = [ "format" ];
+
   buildInputs = [
     aalib gsl libpng libX11 xproto libXext xextproto
     libXt zlib gettext intltool perl
@@ -24,6 +26,6 @@ stdenv.mkDerivation rec {
     homepage = http://xaos.sourceforge.net/;
     description = "Fractal viewer";
     license = stdenv.lib.licenses.gpl2Plus;
-    platforms = stdenv.lib.platforms.linux;
+    platforms = [ "x86_64-linux" ];
   };
 }

@@ -18,7 +18,9 @@ let
 
     ${cfg.config}
 
-    ${optionalString (cfg.httpConfig == "") ''
+    ${optionalString (cfg.httpConfig == "" && cfg.config == "") ''
+    events {}
+
     http {
       include ${cfg.package}/conf/mime.types;
       include ${cfg.package}/conf/fastcgi.conf;
@@ -96,6 +98,7 @@ let
     }''}
 
     ${optionalString (cfg.httpConfig != "") ''
+    events {}
     http {
       include ${cfg.package}/conf/mime.types;
       include ${cfg.package}/conf/fastcgi.conf;
@@ -162,6 +165,8 @@ let
   mkLocations = locations: concatStringsSep "\n" (mapAttrsToList (location: config: ''
     location ${location} {
       ${optionalString (config.proxyPass != null) "proxy_pass ${config.proxyPass};"}
+      ${optionalString (config.index != null) "index ${config.index};"}
+      ${optionalString (config.tryFiles != null) "try_files ${config.tryFiles};"}
       ${optionalString (config.root != null) "root ${config.root};"}
       ${config.extraConfig}
     }
@@ -233,9 +238,12 @@ in
       };
 
       config = mkOption {
-        default = "events {}";
+        default = "";
         description = "
           Verbatim nginx.conf configuration.
+          This is mutually exclusive with the structured configuration
+          via virtualHosts and the recommendedXyzSettings configuration
+          options. See appendConfig for appending to the generated http block.
         ";
       };
 
@@ -268,8 +276,8 @@ in
         default = "";
         description = "
           Configuration lines to be appended to the generated http block.
-          This is mutually exclusive with using httpConfig for specifying the whole
-          http block verbatim.
+          This is mutually exclusive with using config and httpConfig for 
+          specifying the whole http block verbatim.
         ";
       };
 

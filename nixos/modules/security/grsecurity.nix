@@ -12,7 +12,7 @@ let
     (fs: (fs.neededForBoot
           || elem fs.mountPoint [ "/" "/nix" "/nix/store" "/var" "/var/log" "/var/lib" "/etc" ])
           && fs.fsType == "zfs")
-    (attrValues config.fileSystems) != [];
+    config.system.build.fileSystems != [];
 
   # Ascertain whether NixOS container support is required
   containerSupportRequired =
@@ -20,6 +20,11 @@ let
 in
 
 {
+  meta = {
+    maintainers = with maintainers; [ joachifm ];
+    doc = ./grsecurity.xml;
+  };
+
   options.security.grsecurity = {
 
     enable = mkEnableOption "grsecurity/PaX";
@@ -119,11 +124,13 @@ in
       "kernel.grsecurity.chroot_deny_chroot" = mkForce 0;
       "kernel.grsecurity.chroot_deny_mount" = mkForce 0;
       "kernel.grsecurity.chroot_deny_pivot" = mkForce 0;
+      "kernel.grsecurity.chroot_deny_chmod" = mkForce 0;
     } // optionalAttrs containerSupportRequired {
       # chroot(2) restrictions that conflict with NixOS lightweight containers
       "kernel.grsecurity.chroot_deny_chmod" = mkForce 0;
       "kernel.grsecurity.chroot_deny_mount" = mkForce 0;
       "kernel.grsecurity.chroot_restrict_nice" = mkForce 0;
+      "kernel.grsecurity.chroot_caps" = mkForce 0;
     };
 
     assertions = [

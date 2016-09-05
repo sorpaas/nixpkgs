@@ -12,13 +12,13 @@ let
 in
 buildPythonApplication rec {
   name = "matrix-synapse-${version}";
-  version = "0.16.1-r1";
+  version = "0.17.1";
 
   src = fetchFromGitHub {
     owner = "matrix-org";
     repo = "synapse";
     rev = "v${version}";
-    sha256 = "0flgaa26j9gga9a9h67b0q3yi0mpnbrjik55220cvvzhy9fnvwa9";
+    sha256 = "04wl6lznffxhvfq52cmbg2amkl03454wyaqc17i0zlc6b0p14dli";
   };
 
   patches = [ ./matrix-synapse.patch ];
@@ -28,6 +28,7 @@ buildPythonApplication rec {
     pydenticon pymacaroons-pynacl pynacl pyopenssl pysaml2 pytz requests2
     service-identity signedjson systemd twisted ujson unpaddedbase64 pyyaml
     matrix-angular-sdk bleach netaddr jinja2 psycopg2 python.modules.curses
+    ldap3 psutil
   ];
 
   # Checks fail because of Tox.

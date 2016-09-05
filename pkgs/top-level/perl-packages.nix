@@ -1508,6 +1508,10 @@ let self = _self // overrides; _self = with self; {
       url = mirror://cpan/authors/id/A/AB/ABRAXXA/CatalystX-Script-Server-Starman-0.02.tar.gz;
       sha256 = "0h02mpkc4cmi3jpvcd7iw7xyzx55bqvvl1qkf967gqkvpklm0qx5";
     };
+    patches = [
+      # See Nixpkgs issues #16074 and #17624
+      ../development/perl-modules/CatalystXScriptServerStarman-fork-arg.patch
+    ];
     buildInputs = [ TestWWWMechanizeCatalyst ];
     propagatedBuildInputs = [ CatalystRuntime Moose namespaceautoclean Starman ];
     meta = {
@@ -3024,10 +3028,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   DataValidateDomain = buildPerlPackage rec {
-    name = "Data-Validate-Domain-0.12";
+    name = "Data-Validate-Domain-0.14";
     src = fetchurl {
       url = "mirror://cpan/authors/id/D/DR/DROLSKY/${name}.tar.gz";
-      sha256 = "6bd39c71d232fa341ad1324158bf1edf5df9add2bcac87996aa4b584445cdec5";
+      sha256 = "4470f253b8d2720a4dd3fa3ae550995417c2269f3be7ff030e01afa04a3a9421";
     };
     buildInputs = [ Test2Suite ];
     propagatedBuildInputs = [ NetDomainTLD ];
@@ -3324,10 +3328,13 @@ let self = _self // overrides; _self = with self; {
     name = "DateTime-Format-SQLite-0.11";
     src = fetchurl {
       url = "mirror://cpan/authors/id/C/CF/CFAERBER/${name}.tar.gz";
-      sha256 = "1d4ln8x5bjpqmgnbbi2h16knfz674dsgvk6x7m60v6ykw454w7yc";
+      sha256 = "cc1f4e0ae1d39b0d4c3dddccfd7423c77c67a70950c4b5ecabf8ca553ab294b4";
     };
-
     propagatedBuildInputs = [ DateTime DateTimeFormatBuilder ];
+    meta = {
+      description = "Parse and format SQLite dates and times";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
   };
 
   DateTimeFormatW3CDTF = buildPerlPackage {
@@ -4220,15 +4227,16 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
-  DistZillaPluginTestPodLinkCheck = buildPerlPackage {
-    name = "Dist-Zilla-Plugin-Test-Pod-LinkCheck-1.001";
+  DistZillaPluginTestPodLinkCheck = buildPerlPackage rec {
+    name = "Dist-Zilla-Plugin-Test-Pod-LinkCheck-1.002";
     src = fetchurl {
-      url = mirror://cpan/authors/id/R/RW/RWSTAUNER/Dist-Zilla-Plugin-Test-Pod-LinkCheck-1.001.tar.gz;
-      sha256 = "d75682175dff1f79928794ba30ea29389a4666f781a50cba281c25cfd3c95bbd";
+      url = "mirror://cpan/authors/id/R/RW/RWSTAUNER/${name}.tar.gz";
+      sha256 = "26f3b257d5037aeec8335910cfdaf76fc8612f38f5d3134f46cd433e116947b0";
     };
+#    buildInputs = [ ModuleBuild ];
     propagatedBuildInputs = [ DistZilla Moose TestPodLinkCheck ];
     meta = {
-      homepage = http://github.com/rwstauner/Dist-Zilla-Plugin-Test-Pod-LinkCheck;
+      homepage = https://github.com/rwstauner/Dist-Zilla-Plugin-Test-Pod-LinkCheck;
       description = "Add release tests for POD links";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
     };
@@ -5141,10 +5149,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   FileMimeInfo = buildPerlPackage rec {
-    name = "File-MimeInfo-0.23";
+    name = "File-MimeInfo-0.27";
     src = fetchurl {
       url = "mirror://cpan/modules/by-module/File/${name}.tar.gz";
-      sha256 = "006i9idnxv9hsz1gykc5bqs05ma5wz9dsjrpmah9293bgdy1ccxj";
+      sha256 = "0d3jcs2fgrrfwl3rxk8xg0varjah2llm66jk6rk2gznpzqkgi72p";
     };
     doCheck = false; # Failed test 'desktop file is the right one'
     propagatedBuildInputs = [ FileBaseDir FileDesktopEntry ];
@@ -5308,12 +5316,13 @@ let self = _self // overrides; _self = with self; {
     };
   };
 
-  FileSlurper = buildPerlPackage {
-    name = "File-Slurper-0.008";
+  FileSlurper = buildPerlPackage rec {
+    name = "File-Slurper-0.009";
     src = fetchurl {
-      url = mirror://cpan/authors/id/L/LE/LEONT/File-Slurper-0.008.tar.gz;
-      sha256 = "10f685140e2cebdd0381f24b010b028f9ca2574361a78f99f4dfe87af5d5d233";
+      url = "mirror://cpan/authors/id/L/LE/LEONT/${name}.tar.gz";
+      sha256 = "3eab340deff6ba5456e7d1156b9cfcc387e1243acfc156ff92b75b3f2e120b91";
     };
+    buildInputs = [ TestWarnings ];
     meta = {
       description = "A simple, sane and efficient module to slurp a file";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -5409,10 +5418,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   FontTTF = buildPerlPackage rec {
-    name = "Font-TTF-1.05";
+    name = "Font-TTF-1.06";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MH/MHOSKEN/${name}.tar.gz";
-      sha256 = "0l7vxag0v3hf7w1kjyjv02zqrjzhg6xczcv60z00l3z0fr78xi16";
+      url = "mirror://cpan/authors/id/B/BH/BHALLISSY/${name}.tar.gz";
+      sha256 = "4b697d444259759ea02d2c442c9bffe5ffe14c9214084a01f743693a944cc293";
     };
     propagatedBuildInputs = [ IOString ];
     meta = {
@@ -6605,10 +6614,10 @@ let self = _self // overrides; _self = with self; {
   };
 
   IOSocketSSL = buildPerlPackage rec {
-    name = "IO-Socket-SSL-2.027";
+    name = "IO-Socket-SSL-2.037";
     src = fetchurl {
       url = "mirror://cpan/authors/id/S/SU/SULLR/${name}.tar.gz";
-      sha256 = "723517ea71f90105579e7db7a1a2e053bf5c8142a187df8bc1fe3881c3383f67";
+      sha256 = "6747226937d652a30a2c9c21d171412737f41f27ea7d82cd74845b3052909469";
     };
     propagatedBuildInputs = [ NetSSLeay URI ];
     # Fix path to default certificate store.
@@ -7399,11 +7408,12 @@ let self = _self // overrides; _self = with self; {
   };
 
   LogHandler = buildPerlPackage rec {
-    name = "Log-Handler-0.87";
+    name = "Log-Handler-0.88";
     src = fetchurl {
       url = "mirror://cpan/authors/id/B/BL/BLOONIX/${name}.tar.gz";
-      sha256 = "aaf68894ddf51aeaec7e6e22069b5840994517a8937cc6ceaff4d73cee2cf3ed";
+      sha256 = "45bf540ab2138ed3ff93afc205b0516dc75755b86acdcc5e75c41347833c293d";
     };
+    buildInputs = [ ModuleBuild ];
     propagatedBuildInputs = [ ParamsValidate ];
     meta = {
       description = "Log messages to several outputs";
@@ -7938,6 +7948,7 @@ let self = _self // overrides; _self = with self; {
       url = "mirror://cpan/authors/id/R/RO/ROSCH/${name}.tar.gz";
       sha256 = "00wk9950i9q6qwp1vdq9xdddgk54lqd0bhcq2hnijh8xnmhvpmsc";
     };
+    outputs = [ "out" ];
     buildInputs = [ ProcWaitStat ];
   };
 
@@ -10739,18 +10750,18 @@ let self = _self // overrides; _self = with self; {
   };
 
   Redis = buildPerlPackage rec {
-    name = "Redis-1.982";
+    name = "Redis-1.991";
     src = fetchurl {
       url = "mirror://cpan/authors/id/D/DA/DAMS/${name}.tar.gz";
-      sha256 = "1ig6sg1sgdz1dq8gpafin9m4nk0n9k1hzs9c45fl6wslpyim864z";
+      sha256 = "f7d1a934fa9360a26e480f896f97be0fd62807f9d9baca65a9aa8d007ff2acaa";
     };
     buildInputs = [ IOString ModuleBuildTiny PodCoverageTrustPod TestCPANMeta TestDeep TestFatal TestSharedFork TestTCP ];
-    propagatedBuildInputs = [ IOSocketTimeout ];
+    propagatedBuildInputs = [ IOSocketTimeout TryTiny ];
     meta = {
-      homepage = https://metacpan.org/pod/Redis;
+      homepage = https://github.com/PerlRedis/perl-redis;
       description = "Perl binding for Redis database";
       license = stdenv.lib.licenses.artistic2;
-      maintainers = with maintainers; [ rycee ];
+      maintainers = [ maintainers.rycee ];
       platforms   = stdenv.lib.platforms.unix;
     };
   };
@@ -11659,14 +11670,15 @@ let self = _self // overrides; _self = with self; {
   };
 
   SubName = buildPerlPackage rec {
-    name = "Sub-Name-0.15";
+    name = "Sub-Name-0.19";
     src = fetchurl {
       url = "mirror://cpan/authors/id/E/ET/ETHER/${name}.tar.gz";
-      sha256 = "dabc9a4abcbe067d120ce005b4203b8a44291cbda013900152ba19a1e7c1c8c8";
+      sha256 = "b06ba8252ce3b1bb88fa0ea0fe9ec8b572e5ed36c69f55e9e3d9db8a73efe22b";
     };
+    buildInputs = [ self."if" ];
     meta = {
       homepage = https://github.com/p5sagit/Sub-Name;
-      description = "(re)name a sub";
+      description = "(Re)name a sub";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
       maintainers = [ maintainers.rycee ];
     };
@@ -12696,13 +12708,13 @@ let self = _self // overrides; _self = with self; {
     propagatedBuildInputs = [PodCoverage];
   };
 
-  TestPodLinkCheck = buildPerlPackage {
-    name = "Test-Pod-LinkCheck-0.007";
+  TestPodLinkCheck = buildPerlPackage rec {
+    name = "Test-Pod-LinkCheck-0.008";
     src = fetchurl {
-      url = mirror://cpan/authors/id/A/AP/APOCAL/Test-Pod-LinkCheck-0.007.tar.gz;
-      sha256 = "de2992e756fca96824411bb3ab2b94b05567cb3f2c5e3ffd8162ffdfd1f77c88";
+      url = "mirror://cpan/authors/id/A/AP/APOCAL/${name}.tar.gz";
+      sha256 = "2bfe771173c38b69eeb089504e3f76511b8e45e6a9e6dac3e616e400ea67bcf0";
     };
-    buildInputs = [ TestTester ];
+    buildInputs = [ ModuleBuildTiny ];
     propagatedBuildInputs = [ CaptureTiny Moose TestPod podlinkcheck ];
     meta = {
       homepage = http://search.cpan.org/dist/Test-Pod-LinkCheck/;
@@ -14116,6 +14128,7 @@ let self = _self // overrides; _self = with self; {
     preConfigure =
       ''
         substituteInPlace Makefile.PL --replace '"cpp"' '"gcc -E"'
+        substituteInPlace Makefile.PL --replace '_LASTENTRY\z' '_LASTENTRY\z|CURL_DID_MEMORY_FUNC_TYPEDEFS\z'
       '';
     doCheck = false; # performs network access
   };

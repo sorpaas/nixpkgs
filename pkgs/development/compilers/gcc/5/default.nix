@@ -189,6 +189,9 @@ let version = "5.4.0";
             # To keep ABI compatibility with upstream mingw-w64
             " --enable-fully-dynamic-string"
             else (if cross.libc == "uclibc" then
+              # libsanitizer requires netrom/netrom.h which is not
+              # available in uclibc.
+              " --disable-libsanitizer" +
               # In uclibc cases, libgomp needs an additional '-ldl'
               # and as I don't know how to pass it, I disable libgomp.
               " --disable-libgomp" else "") +
@@ -215,6 +218,9 @@ stdenv.mkDerivation ({
     url = "mirror://gnu/gcc/gcc-${version}/gcc-${version}.tar.bz2";
     inherit sha256;
   };
+
+  # FIXME stackprotector needs gcc 4.9 in bootstrap tools
+  hardeningDisable = [ "stackprotector" "format" ];
 
   inherit patches;
 

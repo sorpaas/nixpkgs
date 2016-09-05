@@ -58,7 +58,7 @@ assert langGo -> langCC;
 with stdenv.lib;
 with builtins;
 
-let version = "6.1.0";
+let version = "6.2.0";
 
     # Whether building a cross-compiler for GNU/Hurd.
     crossGNU = cross != null && cross.config == "i586-pc-gnu";
@@ -188,6 +188,9 @@ let version = "6.1.0";
             # To keep ABI compatibility with upstream mingw-w64
             " --enable-fully-dynamic-string"
             else (if cross.libc == "uclibc" then
+              # libsanitizer requires netrom/netrom.h which is not
+              # available in uclibc.
+              " --disable-libsanitizer" +
               # In uclibc cases, libgomp needs an additional '-ldl'
               # and as I don't know how to pass it, I disable libgomp.
               " --disable-libgomp" else "") +
@@ -212,7 +215,7 @@ stdenv.mkDerivation ({
 
   src = fetchurl {
     url = "mirror://gnu/gcc/gcc-${version}/gcc-${version}.tar.bz2";
-    sha256 = "0ld3y4rgimyqgx1nwvzqyl5gr4wzc0ch4akkvsqp3fgbmdfcii09";
+    sha256 = "1idpf43988v1a6i8lw9ak1r7igcfg1bm5kn011iydlr2qygmhi4r";
   };
 
   inherit patches;
@@ -222,6 +225,8 @@ stdenv.mkDerivation ({
   NIX_NO_SELF_RPATH = true;
 
   libc_dev = stdenv.cc.libc_dev;
+
+  hardeningDisable = [ "format" ];
 
   postPatch =
     if (stdenv.isGNU
@@ -330,8 +335,8 @@ stdenv.mkDerivation ({
       else ""}
     ${if javaAwtGtk then "--enable-java-awt=gtk" else ""}
     ${if langJava && javaAntlr != null then "--with-antlr-jar=${javaAntlr}" else ""}
-    --with-gmp=${gmp}
-    --with-mpfr=${mpfr}
+    --with-gmp=${gmp.dev}
+    --with-mpfr=${mpfr.dev}
     --with-mpc=${libmpc}
     ${if libelf != null then "--with-libelf=${libelf}" else ""}
     --disable-libstdcxx-pch

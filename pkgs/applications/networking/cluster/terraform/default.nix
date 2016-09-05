@@ -2,7 +2,7 @@
 
 buildGoPackage rec {
   name = "terraform-${version}";
-  version = "0.7.0";
+  version = "0.7.1";
   rev = "v${version}";
 
   goPackagePath = "github.com/hashicorp/terraform";
@@ -11,15 +11,21 @@ buildGoPackage rec {
     inherit rev;
     owner = "hashicorp";
     repo = "terraform";
-    sha256 = "0k5d6zph6sq1qg8vi5jmk7apy6v67xn5i7rqjamyr5an7lpxssc9";
+    sha256 = "1nvz4nqkn8pl25zyw7x5079dbzmwdxsar9gbcjk1srfpa746j1y4";
   };
 
   postInstall = ''
-    # prefix all the plugins with "terraform-"
+    # remove all plugins, they are part of the main binary now
     for i in $bin/bin/*; do
       if [[ $(basename $i) != terraform ]]; then
-        mv -v $i $bin/bin/terraform-$(basename $i);
+        rm "$i"
       fi
     done
   '';
+
+  meta = with stdenv.lib; {
+    description = "Tool for building, changing, and versioning infrastructure";
+    homepage = "https://www.terraform.io/";
+    license = licenses.mpl20;
+  };
 }

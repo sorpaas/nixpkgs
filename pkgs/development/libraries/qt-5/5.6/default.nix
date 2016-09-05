@@ -90,11 +90,12 @@ let
       qtsensors = callPackage ./qtsensors.nix {};
       qtserialport = callPackage ./qtserialport {};
       qtsvg = callPackage ./qtsvg.nix {};
-      qttools = callPackage ./qttools.nix {};
+      qttools = callPackage ./qttools {};
       qttranslations = callPackage ./qttranslations.nix {};
-      /* qtwayland = not packaged */
+      qtwayland = callPackage ./qtwayland.nix {};
       qtwebchannel = callPackage ./qtwebchannel.nix {};
       qtwebengine = callPackage ./qtwebengine.nix {};
+      qtwebkit = callPackage ./qtwebkit {};
       qtwebsockets = callPackage ./qtwebsockets.nix {};
       /* qtwinextras = not packaged */
       qtx11extras = callPackage ./qtx11extras.nix {};
@@ -104,8 +105,8 @@ let
       full = env "qt-${qtbase.version}" [
         qtconnectivity qtdeclarative qtdoc qtenginio qtgraphicaleffects
         qtimageformats qtlocation qtmultimedia qtquickcontrols qtscript
-        qtsensors qtserialport qtsvg qttools qttranslations qtwebsockets
-        qtx11extras qtxmlpatterns
+        qtsensors qtserialport qtsvg qttools qttranslations qtwayland
+        qtwebsockets qtx11extras qtxmlpatterns
       ];
 
       makeQtWrapper = makeSetupHook { deps = [ makeWrapper ]; } ./make-qt-wrapper.sh;
