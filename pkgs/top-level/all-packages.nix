@@ -1248,11 +1248,6 @@ in
     scpSupport = zlibSupport && !stdenv.isSunOS && !stdenv.isCygwin;
   };
 
-  curl3 = callPackage ../tools/networking/curl/7.15.nix rec {
-    zlibSupport = true;
-    sslSupport = zlibSupport;
-  };
-
   curl_unix_socket = callPackage ../tools/networking/curl-unix-socket rec { };
 
   cunit = callPackage ../tools/misc/cunit { };
@@ -11269,6 +11264,8 @@ in
 
     cpupower = callPackage ../os-specific/linux/cpupower { };
 
+    displaylink = callPackage ../os-specific/linux/displaylink { };
+
     dpdk = callPackage ../os-specific/linux/dpdk { };
 
     pktgen = callPackage ../os-specific/linux/pktgen { };
@@ -11342,23 +11339,13 @@ in
 
     vhba = callPackage ../misc/emulators/cdemu/vhba.nix { };
 
-    virtualbox = callPackage ../applications/virtualization/virtualbox {
-      stdenv = stdenv_32bit;
-      inherit (gnome) libIDL;
-      enableExtensionPack = config.virtualbox.enableExtensionPack or false;
-      pulseSupport = config.pulseaudio or false;
+    virtualbox = callPackage ../os-specific/linux/virtualbox {
+      virtualbox = pkgs.virtualboxHardened;
     };
 
-    virtualboxHardened = lowPrio (virtualbox.override {
-      enableHardening = true;
-    });
-
-    virtualboxHeadless = lowPrio (virtualbox.override {
-      enableHardening = true;
-      headless = true;
-    });
-
-    virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions { };
+    virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions {
+      virtualbox = pkgs.virtualboxHardened;
+    };
 
     wireguard = callPackage ../os-specific/linux/wireguard { };
 
@@ -15131,6 +15118,22 @@ in
 
   virtinst = callPackage ../applications/virtualization/virtinst {};
 
+  virtualbox = callPackage ../applications/virtualization/virtualbox {
+    stdenv = stdenv_32bit;
+    inherit (gnome) libIDL;
+    enableExtensionPack = config.virtualbox.enableExtensionPack or false;
+    pulseSupport = config.pulseaudio or true;
+  };
+
+  virtualboxHardened = lowPrio (virtualbox.override {
+    enableHardening = true;
+  });
+
+  virtualboxHeadless = lowPrio (virtualbox.override {
+    enableHardening = true;
+    headless = true;
+  });
+
   virtualglLib = callPackage ../tools/X11/virtualgl/lib.nix {
     fltk = fltk13;
   };
@@ -15761,8 +15764,6 @@ in
   gnuchess = callPackage ../games/gnuchess { };
 
   gnugo = callPackage ../games/gnugo { };
-
-  gsb = callPackage ../games/gsb { };
 
   gtypist = callPackage ../games/gtypist { };
 

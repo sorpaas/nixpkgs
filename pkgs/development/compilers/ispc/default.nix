@@ -1,10 +1,14 @@
-{stdenv, fetchFromGitHub, bash, which, m4, python, bison, flex, llvmPackages, clangWrapSelf}:
+{stdenv, fetchFromGitHub, bash, which, m4, python, bison, flex, llvmPackages, clangWrapSelf,
+testedTargets ? ["sse2" "host"] # the default test target is sse4, but that is not supported by all Hydra agents
+}:
 
 # TODO: patch LLVM so Skylake-EX works better (patch included in ispc github) - needed for LLVM 3.9?
 
 stdenv.mkDerivation rec {
   version = "1.9.1";
   rev = "v${version}";
+
+  inherit testedTargets;
 
   name = "ispc-${version}";
 
@@ -15,7 +19,8 @@ stdenv.mkDerivation rec {
     sha256 = "1wwsyvn44hd5iyi5779l5378x096307slpyl29wrsmfp66796693";
   };
 
-  enableParallelBuilding = true;
+  # there are missing dependencies in the Makefile, causing sporadic build failures
+  enableParallelBuilding = false;
 
   doCheck = true;
 
@@ -44,8 +49,14 @@ stdenv.mkDerivation rec {
 
   checkPhase = ''
     export ISPC_HOME=$PWD
-    PATH=${llvmPackages.clang}/bin:$PATH python run_tests.py --non-interactive --verbose --file=test_output.log
-    fgrep -q "No new fails"  test_output.log || exit 1
+    for target in $testedTargets
+    do
+      echo "Testing target $target"
+      echo "================================"
+      echo
+      PATH=${llvmPackages.clang}/bin:$PATH python run_tests.py -t $target --non-interactive --verbose --file=test_output.log
+      fgrep -q "No new fails"  test_output.log || exit 1
+    done
   '';
 
   makeFlags = [
