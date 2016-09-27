@@ -9,20 +9,27 @@ index 87e48cb..60d6eaf 100644
 +@nouveauDeviceOptions@
  EndSection
 diff --git a/conf/xorg.conf.nvidia b/conf/xorg.conf.nvidia
-index c3107f9..17072f4 100644
+index 5bd686e..7ad0528 100644
 --- a/conf/xorg.conf.nvidia
 +++ b/conf/xorg.conf.nvidia
-@@ -29,6 +29,6 @@ Section "Device"
+@@ -29,8 +29,6 @@ Section "Device"
      Option "ProbeAllGpus" "false"
  
      Option "NoLogo" "true"
 -    Option "UseEDID" "false"
 -    Option "UseDisplayDevice" "none"
+ 
+ #   If your NVIDIA drivers are version 331.13 or newer, and you have a laptop
+ #   where some of the video outputs such as HDMI or DisplayPort are connected
+@@ -40,4 +38,6 @@ Section "Device"
+ #   allowing the X server to start when the monitor is disconnected.
+ 
+ #   Option "AllowEmptyInitialConfiguration"
 +
 +@nvidiaDeviceOptions@
  EndSection
 diff --git a/src/bbsecondary.c b/src/bbsecondary.c
-index 71a6b73..a682d8a 100644
+index efbc78e..6b7b04e 100644
 --- a/src/bbsecondary.c
 +++ b/src/bbsecondary.c
 @@ -145,6 +145,23 @@ bool start_secondary(bool need_secondary) {
@@ -47,9 +54,9 @@ index 71a6b73..a682d8a 100644
 +    }
 +
      char *x_argv[] = {
-       XORG_BINARY,
+       bb_config.xorg_binary,
        bb_config.x_display,
-@@ -153,24 +170,25 @@ bool start_secondary(bool need_secondary) {
+@@ -153,9 +170,11 @@ bool start_secondary(bool need_secondary) {
        "-sharevts",
        "-nolisten", "tcp",
        "-noreset",
@@ -61,6 +68,10 @@ index 71a6b73..a682d8a 100644
 +      "-modulepath", mod_path,
        NULL
      };
+     char **argvp;
+@@ -165,18 +184,17 @@ bool start_secondary(bool need_secondary) {
+     }
+     bb_log(LOG_DEBUG, "\n");
      enum {n_x_args = sizeof(x_argv) / sizeof(x_argv[0])};
 -    if (!*bb_config.mod_path) {
 -      x_argv[n_x_args - 3] = 0; //remove -modulepath if not set

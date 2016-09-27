@@ -16,10 +16,10 @@
 #
 # To use at startup, see hardware.bumblebee options.
 
-{ stdenv, lib, fetchurl, pkgconfig, help2man, makeWrapper
+{ stdenv, lib, fetchgit, pkgconfig, help2man, makeWrapper
 , glib, libbsd
 , libX11, libXext, xorgserver, xkbcomp, kmod, xkeyboard_config, xf86videonouveau
-, nvidia_x11, virtualgl, primusLib
+, nvidia_x11, virtualgl, primusLib, autoconf, automake
 # The below should only be non-null in a x86_64 system. On a i686
 # system the above nvidia_x11 and virtualgl will be the i686 packages.
 # TODO: Confusing. Perhaps use "SubArch" instead of i686?
@@ -32,7 +32,7 @@
 }:
 
 let
-  version = "3.2.1";
+  version = "20160519";
 
   primus = if useNvidia then primusLib else primusLib.override { nvidia_x11 = null; };
   primus_i686 = if useNvidia then primusLib_i686 else primusLib_i686.override { nvidia_x11 = null; };
@@ -51,9 +51,10 @@ let
 in stdenv.mkDerivation rec {
   name = "bumblebee-${version}";
 
-  src = fetchurl {
-    url = "http://bumblebee-project.org/${name}.tar.gz";
-    sha256 = "03p3gvx99lwlavznrpg9l7jnl1yfg2adcj8jcjj0gxp20wxp060h";
+  src = fetchgit {
+    url = "https://github.com/Bumblebee-Project/Bumblebee";
+    rev = "deceb14cdf2c90ff64ebd1010a674305464587da";
+    sha256 = "0x98kzaidqdyim0vbis4k754sd2f7kqz65jzrcrj81g9q16nx19i";
   };
 
   patches = [ ./nixos.patch ];
@@ -79,6 +80,8 @@ in stdenv.mkDerivation rec {
     # Note: module.c also calls rmmod and modprobe, but those just have to
     # be in PATH, and thus no action for them is required.
 
+    autoreconf -fi
+
     substituteInPlace src/module.c \
       --replace "/sbin/modinfo" "${kmod}/sbin/modinfo"
 
@@ -96,8 +99,8 @@ in stdenv.mkDerivation rec {
 
   # Build-time dependencies of bumblebeed and optirun.
   # Note that it has several runtime dependencies.
-  buildInputs = [ libX11 glib libbsd ];
-  nativeBuildInputs = [ makeWrapper pkgconfig help2man ];
+  buildInputs = [ libX11 glib libbsd kmod ];
+  nativeBuildInputs = [ makeWrapper pkgconfig help2man autoconf automake ];
 
   # The order of LDPATH is very specific: First X11 then the host
   # environment then the optional sub architecture paths.
