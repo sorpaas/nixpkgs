@@ -14536,6 +14536,8 @@ in
     cmake = cmake-2_8; # problems after 3.4 -> 3.6.0
   };
 
+  rclone = callPackage ../applications/networking/sync/rclone { };
+
   rcs = callPackage ../applications/version-management/rcs { };
 
   rdesktop = callPackage ../applications/networking/remote/rdesktop { };
