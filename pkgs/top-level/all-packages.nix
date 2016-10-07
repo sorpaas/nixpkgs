@@ -74,6 +74,8 @@ in
     else
       stdenv);
 
+  stdenvNoCC = stdenv.override { cc = null; };
+
   # For convenience, allow callers to get the path to Nixpkgs.
   path = ../..;
 
@@ -828,6 +830,8 @@ in
   fzf = callPackage ../tools/misc/fzf { };
 
   fzy = callPackage ../tools/misc/fzy { };
+
+  gdrivefs = python27Packages.gdrivefs;
 
   gencfsm = callPackage ../tools/security/gencfsm { };
 
@@ -2607,6 +2611,8 @@ in
   mimeo = callPackage ../tools/misc/mimeo { };
 
   mimetic = callPackage ../development/libraries/mimetic { };
+
+  minio-client = callPackage ../tools/networking/minio-client { };
 
   minissdpd = callPackage ../tools/networking/minissdpd { };
 
@@ -4840,9 +4846,7 @@ in
 
   jrePlugin = self.jre8Plugin;
 
-  jre6Plugin = lowPrio (self.jdkdistro false true);
-
-  jre7Plugin = lowPrio (self.oraclejdk7distro false true);
+  jre7Plugin = lowPrio (pkgs.oraclejdk7distro false true);
 
   jre8Plugin = lowPrio (self.oraclejdk8distro false true);
 
@@ -4850,10 +4854,7 @@ in
     system == "i686-linux" ||
     system == "x86_64-linux";
 
-  jdkdistro = installjdk: pluginSupport:
-    assert supportsJDK;
-    (if pluginSupport then appendToName "with-plugin" else x: x)
-      (callPackage ../development/compilers/oraclejdk/jdk6-linux.nix { });
+  jdkdistro = oraclejdk8distro;
 
   oraclejdk7distro = installjdk: pluginSupport:
     assert supportsJDK;
@@ -6276,7 +6277,7 @@ in
 
   ctodo = callPackage ../applications/misc/ctodo { };
 
-  cmake-2_8 = callPackage ../development/tools/build-managers/cmake/2.8.nix {
+  cmake_2_8 = callPackage ../development/tools/build-managers/cmake/2.8.nix {
     wantPS = stdenv.isDarwin;
     inherit (darwin) ps;
   };
@@ -6611,6 +6612,8 @@ in
   parse-cli-bin = callPackage ../development/tools/parse-cli-bin { };
 
   patchelf = callPackage ../development/tools/misc/patchelf { };
+
+  patchelfUnstable = lowPrio (callPackage ../development/tools/misc/patchelf/unstable.nix { });
 
   peg = callPackage ../development/tools/parsing/peg { };
 
@@ -7129,7 +7132,7 @@ in
   dbus-sharp-glib-1_0 = callPackage ../development/libraries/dbus-sharp-glib/dbus-sharp-glib-1.0.nix { };
   dbus-sharp-glib-2_0 = callPackage ../development/libraries/dbus-sharp-glib { };
 
-  # Should we deprecate these? Currently there are many references.
+  # FIXME: deprecate these.
   dbus_tools = self.dbus.out;
   dbus_libs = self.dbus;
   dbus_daemon = self.dbus.daemon;
@@ -7236,8 +7239,8 @@ in
     x265 = if stdenv.isDarwin then null else x265;
     xavs = if stdenv.isDarwin then null else xavs;
     inherit (darwin) CF;
-    inherit (darwin.apple_sdk.frameworks) 
-      Cocoa CoreServices CoreAudio AVFoundation MediaToolbox 
+    inherit (darwin.apple_sdk.frameworks)
+      Cocoa CoreServices CoreAudio AVFoundation MediaToolbox
       VideoDecodeAcceleration;
   };
 
@@ -9897,6 +9900,8 @@ in
 
   czmq = callPackage ../development/libraries/czmq { };
 
+  czmqpp = callPackage ../development/libraries/czmqpp { };
+
   zimlib = callPackage ../development/libraries/zimlib { };
 
   zita-convolver = callPackage ../development/libraries/audio/zita-convolver { };
@@ -10385,6 +10390,8 @@ in
 
   mfi = callPackage ../servers/mfi { };
 
+  minio = callPackage ../servers/minio { };
+
   # Backwards compatibility.
   mod_dnssd = pkgs.apacheHttpdPackages.mod_dnssd;
   mod_fastcgi = pkgs.apacheHttpdPackages.mod_fastcgi;
@@ -10718,11 +10725,12 @@ in
 
   slurm-llnl-full = appendToName "full" (callPackage ../servers/computing/slurm { });
 
-  tomcat6 = callPackage ../servers/http/tomcat/6.0.nix { };
-
-  tomcat7 = callPackage ../servers/http/tomcat/7.0.nix { };
-
-  tomcat8 = callPackage ../servers/http/tomcat/8.0.nix { };
+  inherit (callPackages ../servers/http/tomcat { })
+    tomcat6
+    tomcat7
+    tomcat8
+    tomcat85
+    tomcatUnstable;
 
   tomcat_mysql_jdbc = callPackage ../servers/http/tomcat/jdbc/mysql { };
 
@@ -11159,7 +11167,7 @@ in
   };
 
   linux_3_10 = callPackage ../os-specific/linux/kernel/linux-3.10.nix {
-    kernelPatches = with kernelPatches; [ bridge_stp_helper ]
+    kernelPatches = with kernelPatches; [ bridge_stp_helper lguest_entry-linkage ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -11214,6 +11222,22 @@ in
         # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
         # when adding a new linux version
         kernelPatches.cpu-cgroup-v2."4.7"
+      ]
+      ++ lib.optionals ((platform.kernelArch or null) == "mips")
+      [ kernelPatches.mips_fpureg_emu
+        kernelPatches.mips_fpu_sigill
+        kernelPatches.mips_ext3_n32
+      ];
+  };
+
+  linux_4_8 = callPackage ../os-specific/linux/kernel/linux-4.8.nix {
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
+        # when adding a new linux version
+        # !!! 4.7 patch doesn't apply, 4.8 patch not up yet, will keep checking
+        # kernelPatches.cpu-cgroup-v2."4.7"
+        kernelPatches.modinst_arg_list_too_long
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11375,7 +11399,7 @@ in
   linux = self.linuxPackages.kernel;
 
   # Update this when adding the newest kernel major version!
-  linuxPackages_latest = self.linuxPackages_4_7;
+  linuxPackages_latest = self.linuxPackages_4_8;
   linux_latest = self.linuxPackages_latest.kernel;
 
   # Build the kernel modules for the some of the kernels.
@@ -11388,6 +11412,7 @@ in
   linuxPackages_4_1 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_1 linuxPackages_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_4 linuxPackages_4_4);
   linuxPackages_4_7 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_7 linuxPackages_4_7);
+  linuxPackages_4_8 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_8 linuxPackages_4_8);
   # Don't forget to update linuxPackages_latest!
 
   # Intentionally lacks recurseIntoAttrs, as -rc kernels will quite likely break out-of-tree modules and cause failed Hydra builds.
@@ -12590,7 +12615,7 @@ in
   cinepaint = callPackage ../applications/graphics/cinepaint {
     fltk = fltk13;
     libpng = libpng12;
-    cmake = cmake-2_8;
+    cmake = cmake_2_8;
   };
 
   codeblocks = callPackage ../applications/editors/codeblocks { };
@@ -13220,14 +13245,14 @@ in
   xfontsel = callPackage ../applications/misc/xfontsel { };
   inherit (xorg) xlsfonts;
 
-  freerdp = callPackage ../applications/networking/remote/freerdp {
+  freerdpStable = callPackage ../applications/networking/remote/freerdp {
     ffmpeg = ffmpeg_1;
   };
-
   freerdpUnstable = callPackage ../applications/networking/remote/freerdp/unstable.nix {
     ffmpeg = ffmpeg_2;
-    cmake = cmake-2_8;
+    cmake = cmake_2_8;
   };
+  freerdp = freerdpUnstable; # freerdpStable is marked broken, please switch back to it once fixed
 
   freicoin = callPackage ../applications/misc/freicoin {
     boost = boost155;
@@ -14533,7 +14558,7 @@ in
 
   rawtherapee = callPackage ../applications/graphics/rawtherapee {
     fftw = fftwSinglePrec;
-    cmake = cmake-2_8; # problems after 3.4 -> 3.6.0
+    cmake = cmake_2_8; # problems after 3.4 -> 3.6.0
   };
 
   rclone = callPackage ../applications/networking/sync/rclone { };
@@ -15118,7 +15143,7 @@ in
 
   virt-viewer = callPackage ../applications/virtualization/virt-viewer {
     gtkvnc = gtkvnc.override { enableGTK3 = true; };
-    spice_gtk = spice_gtk.override { enableGTK3 = true; };
+    spice_gtk = spice_gtk;
   };
 
   virtmanager = callPackage ../applications/virtualization/virt-manager {
@@ -15126,7 +15151,7 @@ in
     vte = gnome3.vte;
     dconf = gnome3.dconf;
     gtkvnc = gtkvnc.override { enableGTK3 = true; };
-    spice_gtk = spice_gtk.override { enableGTK3 = true; };
+    spice_gtk = spice_gtk;
     system-libvirt = libvirt;
   };
 
@@ -15997,7 +16022,7 @@ in
 
   spring = callPackage ../games/spring {
     boost = boost155;
-    cmake = cmake-2_8;
+    cmake = cmake_2_8;
   };
 
   springLobby = callPackage ../games/spring/springlobby.nix { };
@@ -16161,7 +16186,7 @@ in
 
   zandronum = callPackage ../games/zandronum {
     fmod = fmod42416;
-    cmake = cmake-2_8;
+    cmake = cmake_2_8;
   };
 
   zandronum-server = zandronum.override {
@@ -16975,7 +17000,7 @@ in
   stellarium = qt5.callPackage ../applications/science/astronomy/stellarium { };
 
   tulip = callPackage ../applications/science/misc/tulip {
-    cmake = cmake-2_8;
+    cmake = cmake_2_8;
   };
 
   vite = callPackage ../applications/science/misc/vite { };
