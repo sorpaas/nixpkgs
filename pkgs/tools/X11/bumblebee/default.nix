@@ -125,7 +125,6 @@ in stdenv.mkDerivation rec {
 
   postInstall = ''
     wrapProgram "$out/sbin/bumblebeed" \
-      --set XKB_BINDIR "${xkbcomp}/bin" \
       --prefix PATH : "${bbdPath}" \
       --prefix LD_LIBRARY_PATH : "${bbdLibs}"
 

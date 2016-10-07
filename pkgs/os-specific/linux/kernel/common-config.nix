@@ -270,6 +270,13 @@ with stdenv.lib;
     SQUASHFS_LZ4 y
   ''}
 
+  # Native Language Support modules, needed by some filesystems
+  NLS y
+  NLS_DEFAULT utf8
+  NLS_UTF8 m
+  NLS_CODEPAGE_437 m # VFAT default for the codepage= mount option
+  NLS_ISO8859_1 m    # VFAT default for the iocharset= mount option
+
   # Runtime security tests
   DEBUG_SET_MODULE_RONX? y # Detect writes to read-only module pages
 
@@ -505,9 +512,15 @@ with stdenv.lib;
   TRANSPARENT_HUGEPAGE_MADVISE? y
 
   # zram support (e.g for in-memory compressed swap).
-  ZSMALLOC y
   ZRAM m
   ZSWAP? y
+  ZBUD? y
+  ${optionalString (versionOlder version "3.18") ''
+    ZSMALLOC y
+  ''}
+  ${optionalString (versionAtLeast version "3.18") ''
+    ZSMALLOC m
+  ''}
 
   # Enable PCIe and USB for the brcmfmac driver
   BRCMFMAC_USB? y

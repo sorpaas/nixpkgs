@@ -29,7 +29,19 @@ following incompatible changes:</para>
 
 <itemizedlist>
   <listitem>
-    <para></para>
+    <para>
+      <literal>gnome</literal> alias has been removed along with
+      <literal>gtk</literal>, <literal>gtkmm</literal> and several others.
+      Now you need to use versioned attributes, like <literal>gnome3</literal>.
+    </para>
+  </listitem>
+
+  <listitem>
+    <para>
+      The attribute name of the Radicale daemon has been changed from
+      <literal>pythonPackages.radicale</literal> to
+      <literal>radicale</literal>.
+    </para>
   </listitem>
 </itemizedlist>
 
