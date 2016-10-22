@@ -243,7 +243,7 @@ let
     BayesXsrc = [ pkgs.readline pkgs.ncurses ];
     bigGP = [ pkgs.openmpi ];
     BiocCheck = [ pkgs.which ];
-    Biostrings = [ pkgs.zlib ];
+    Biostrings = [ pkgs.zlib.dev ];
     bnpmr = [ pkgs.gsl_1 ];
     BNSP = [ pkgs.gsl_1 ];
     cairoDevice = [ pkgs.gtk2 ];
@@ -252,7 +252,7 @@ let
     chebpol = [ pkgs.fftw ];
     ChemmineOB = [ pkgs.openbabel pkgs.pkgconfig ];
     cit = [ pkgs.gsl_1 ];
-    curl = [ pkgs.curl ];
+    curl = [ pkgs.curl.dev ];
     devEMF = [ pkgs.xorg.libXft ];
     diversitree = [ pkgs.gsl_1 pkgs.fftw ];
     EMCluster = [ pkgs.liblapack ];
@@ -260,7 +260,7 @@ let
     fftwtools = [ pkgs.fftw ];
     Formula = [ pkgs.gmp ];
     geoCount = [ pkgs.gsl_1 ];
-    git2r = [ pkgs.zlib pkgs.openssl ];
+    git2r = [ pkgs.zlib.dev pkgs.openssl.dev ];
     GLAD = [ pkgs.gsl_1 ];
     glpkAPI = [ pkgs.gmp pkgs.glpk ];
     gmp = [ pkgs.gmp ];
@@ -279,7 +279,7 @@ let
     mwaved = [ pkgs.fftw ];
     ncdf4 = [ pkgs.netcdf ];
     nloptr = [ pkgs.nlopt ];
-    openssl = [ pkgs.openssl ];
+    openssl = [ pkgs.openssl.dev ];
     outbreaker = [ pkgs.gsl_1 ];
     pander = [ pkgs.pandoc pkgs.which ];
     pbdMPI = [ pkgs.openmpi ];
@@ -287,20 +287,20 @@ let
     pbdPROF = [ pkgs.openmpi ];
     PKI = [ pkgs.openssl ];
     png = [ pkgs.libpng ];
-    PopGenome = [ pkgs.zlib ];
+    PopGenome = [ pkgs.zlib.dev ];
     proj4 = [ pkgs.proj ];
     qtbase = [ pkgs.qt4 ];
     qtpaint = [ pkgs.qt4 ];
     R2GUESS = [ pkgs.gsl_1 ];
-    R2SWF = [ pkgs.zlib pkgs.libpng pkgs.freetype ];
+    R2SWF = [ pkgs.zlib.dev pkgs.libpng pkgs.freetype ];
     RAppArmor = [ pkgs.libapparmor ];
     rapportools = [ pkgs.which ];
     rapport = [ pkgs.which ];
-    rbamtools = [ pkgs.zlib ];
+    rbamtools = [ pkgs.zlib.dev ];
     rcdd = [ pkgs.gmp ];
-    RcppCNPy = [ pkgs.zlib ];
+    RcppCNPy = [ pkgs.zlib.dev ];
     RcppGSL = [ pkgs.gsl_1 ];
-    RcppOctave = [ pkgs.zlib pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre pkgs.octave ];
+    RcppOctave = [ pkgs.zlib.dev pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre pkgs.octave ];
     RcppZiggurat = [ pkgs.gsl_1 ];
     rgdal = [ pkgs.proj pkgs.gdal ];
     rgeos = [ pkgs.geos ];
@@ -308,21 +308,21 @@ let
     rgl = [ pkgs.mesa pkgs.xlibsWrapper ];
     Rglpk = [ pkgs.glpk ];
     RGtk2 = [ pkgs.gtk2 ];
-    Rhpc = [ pkgs.zlib pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.openmpi pkgs.pcre ];
-    Rhtslib = [ pkgs.zlib ];
-    RJaCGH = [ pkgs.zlib ];
+    Rhpc = [ pkgs.zlib.dev pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.openmpi pkgs.pcre ];
+    Rhtslib = [ pkgs.zlib.dev ];
+    RJaCGH = [ pkgs.zlib.dev ];
     rjags = [ pkgs.jags ];
-    rJava = [ pkgs.zlib pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre pkgs.jdk pkgs.libzip ];
+    rJava = [ pkgs.zlib.dev pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre pkgs.jdk pkgs.libzip ];
     Rlibeemd = [ pkgs.gsl_1 ];
-    rmatio = [ pkgs.zlib ];
+    rmatio = [ pkgs.zlib.dev ];
     Rmpfr = [ pkgs.gmp pkgs.mpfr ];
     Rmpi = [ pkgs.openmpi ];
-    RMySQL = [ pkgs.zlib pkgs.mysql.lib ];
+    RMySQL = [ pkgs.zlib.dev pkgs.mysql.lib ];
     RNetCDF = [ pkgs.netcdf pkgs.udunits ];
     RODBCext = [ pkgs.libiodbc ];
     RODBC = [ pkgs.libiodbc ];
     rpg = [ pkgs.postgresql ];
-    rphast = [ pkgs.pcre pkgs.zlib pkgs.bzip2 pkgs.gzip pkgs.readline ];
+    rphast = [ pkgs.pcre pkgs.zlib.dev pkgs.bzip2 pkgs.gzip pkgs.readline ];
     Rpoppler = [ pkgs.poppler ];
     RPostgreSQL = [ pkgs.postgresql ];
     RProtoBuf = [ pkgs.protobuf ];
@@ -330,17 +330,17 @@ let
     RSclient = [ pkgs.openssl ];
     Rserve = [ pkgs.openssl ];
     Rssa = [ pkgs.fftw ];
-    rtfbs = [ pkgs.zlib pkgs.pcre pkgs.bzip2 pkgs.gzip pkgs.readline ];
+    rtfbs = [ pkgs.zlib.dev pkgs.pcre pkgs.bzip2 pkgs.gzip pkgs.readline ];
     rtiff = [ pkgs.libtiff ];
     runjags = [ pkgs.jags ];
-    RVowpalWabbit = [ pkgs.zlib pkgs.boost ];
+    RVowpalWabbit = [ pkgs.zlib.dev pkgs.boost ];
     rzmq = [ pkgs.zeromq3 ];
-    SAVE = [ pkgs.zlib pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre ];
+    SAVE = [ pkgs.zlib.dev pkgs.bzip2 pkgs.icu pkgs.lzma pkgs.pcre ];
     sdcTable = [ pkgs.gmp pkgs.glpk ];
     seewave = [ pkgs.fftw pkgs.libsndfile ];
-    seqinr = [ pkgs.zlib ];
-    seqminer = [ pkgs.zlib pkgs.bzip2 ];
-    showtext = [ pkgs.zlib pkgs.libpng pkgs.icu pkgs.freetype ];
+    seqinr = [ pkgs.zlib.dev ];
+    seqminer = [ pkgs.zlib.dev pkgs.bzip2 ];
+    showtext = [ pkgs.zlib.dev pkgs.libpng pkgs.icu pkgs.freetype ];
     simplexreg = [ pkgs.gsl_1 ];
     SOD = [ pkgs.cudatoolkit ]; # requres CL/cl.h
     spate = [ pkgs.fftw ];
@@ -349,8 +349,8 @@ let
     stsm = [ pkgs.gsl_1 ];
     stringi = [ pkgs.icu.dev ];
     survSNP = [ pkgs.gsl_1 ];
-    sysfonts = [ pkgs.zlib pkgs.libpng pkgs.freetype ];
-    TAQMNGR = [ pkgs.zlib ];
+    sysfonts = [ pkgs.zlib.dev pkgs.libpng pkgs.freetype ];
+    TAQMNGR = [ pkgs.zlib.dev ];
     tiff = [ pkgs.libtiff ];
     TKF = [ pkgs.gsl_1 ];
     tkrplot = [ pkgs.xorg.libX11 ];
@@ -359,24 +359,24 @@ let
     V8 = [ pkgs.v8 ];
     VBLPCM = [ pkgs.gsl_1 ];
     VBmix = [ pkgs.gsl_1 pkgs.fftw pkgs.qt4 ];
-    WhopGenome = [ pkgs.zlib ];
-    XBRL = [ pkgs.zlib pkgs.libxml2 ];
+    WhopGenome = [ pkgs.zlib.dev ];
+    XBRL = [ pkgs.zlib.dev pkgs.libxml2 ];
     xml2 = [ pkgs.libxml2 ];
     XML = [ pkgs.libtool pkgs.libxml2 pkgs.xmlsec pkgs.libxslt ];
-    affyPLM = [ pkgs.zlib ];
-    bamsignals = [ pkgs.zlib ];
-    BitSeq = [ pkgs.zlib ];
-    DiffBind = [ pkgs.zlib ];
-    ShortRead = [ pkgs.zlib ];
-    oligo = [ pkgs.zlib ];
-    gmapR = [ pkgs.zlib ];
-    Rsubread = [ pkgs.zlib ];
-    XVector = [ pkgs.zlib ];
-    Rsamtools = [ pkgs.zlib ];
-    rtracklayer = [ pkgs.zlib ];
-    affyio = [ pkgs.zlib ];
-    VariantAnnotation = [ pkgs.zlib ];
-    snpStats = [ pkgs.zlib ];
+    affyPLM = [ pkgs.zlib.dev ];
+    bamsignals = [ pkgs.zlib.dev ];
+    BitSeq = [ pkgs.zlib.dev ];
+    DiffBind = [ pkgs.zlib.dev ];
+    ShortRead = [ pkgs.zlib.dev ];
+    oligo = [ pkgs.zlib.dev ];
+    gmapR = [ pkgs.zlib.dev ];
+    Rsubread = [ pkgs.zlib.dev ];
+    XVector = [ pkgs.zlib.dev ];
+    Rsamtools = [ pkgs.zlib.dev ];
+    rtracklayer = [ pkgs.zlib.dev ];
+    affyio = [ pkgs.zlib.dev ];
+    VariantAnnotation = [ pkgs.zlib.dev ];
+    snpStats = [ pkgs.zlib.dev ];
   };
 
   packagesWithBuildInputs = {
@@ -390,7 +390,7 @@ let
     qtpaint = [ pkgs.cmake ];
     qtbase = [ pkgs.cmake pkgs.perl ];
     gmatrix = [ pkgs.cudatoolkit ];
-    RCurl = [ pkgs.curl ];
+    RCurl = [ pkgs.curl.dev ];
     R2SWF = [ pkgs.pkgconfig ];
     rggobi = [ pkgs.pkgconfig ];
     RGtk2 = [ pkgs.pkgconfig ];
@@ -682,7 +682,6 @@ let
     "vegan"
     "vegan3d"
     "vegclust"
-    "VIMGUI"
     "WMCapacity"
     "x12GUI"
     "xergm"
@@ -764,7 +763,6 @@ let
     "Metab" # broken build
     "Crossover" # broken build
     "CardinalWorkflows" # broken build
-    "spoccutils" # depends on broken package spocc
     "mapr" # depends on broken package spocc
     "vmsbase" # broken build
     "vcfR" # broken build
@@ -873,7 +871,6 @@ let
     "stepNorm" # depends on broken package limma
     "RBM" # depends on broken package limma
     "saps" # depends on broken package limma
-    "PharmacoGx" # depends on broken package limma
     "piano" # depends on broken package limma
     "OLINgui" # depends on broken package limma
     "OLIN" # depends on broken package limma
@@ -1160,17 +1157,14 @@ let
     "tadaatoolbox" # depends on broken package car
     "lavaan_shiny" # depends on broken package car
     "RcmdrPlugin_GWRM" # depends on broken package car
-    "TextoMineR" # depends on broken package car
     "pcaBootPlot" # depends on broken package car
     "ClustGeo" # depends on broken package car
     "preproviz" # depends on broken package car
-    "hsdar" # depends on broken package car
     "DecisionCurve" # depends on broken package car
     "CONDOP" # depends on broken package car
     "EnsemblePenReg" # depends on broken package car
     "EnsembleBase" # depends on broken package car
     "fullfact" # depends on broken package car
-    "clusterSEs" # depends on broken package car
     "ggiraph" # depends on broken package gdtools
     "rvg" # depends on broken package gdtools
     "ggpmisc" # depends on broken package polynom
@@ -1258,7 +1252,6 @@ let
     "CLME" # depends on broken package nlopt
     "clpAPI" # build is broken
     "clusterPower" # depends on broken package nlopt
-    "clusterSEs" # depends on broken AER
     "ClustGeo" # depends on broken FactoMineR
     "CNORfuzzy" # depends on broken package nlopt
     "CNVPanelizer" # depends on broken cn.mops
@@ -1366,7 +1359,6 @@ let
     "gmatrix" # depends on broken package cudatoolkit
     "gMCP" # build is broken
     "gmum_r" # broken build
-    "Goslate" # depends on broken package PythonInR
     "GPC" # broken build
     "gplm" # depends on broken package nlopt
     "gpuR" # depends on GPU-specific header files
@@ -1481,7 +1473,6 @@ let
     "mlma" # depends on broken package lme4
     "mlmRev" # depends on broken package nlopt
     "MLSeq" # depends on broken package nlopt
-    "mlVAR" # depends on broken package nlopt
     "MM" # broken build
     "mongolite" # build is broken
     "mosaic" # depends on broken package nlopt
@@ -1499,7 +1490,6 @@ let
     "MXM" # broken build
     "NanoStringDiff" # broken build
     "NanoStringQCPro" # build is broken
-    "nCal" # depends on broken package nlopt
     "ncdfFlow" # build is broken
     "NCIgraph" # depends on broken package RCytoscape
     "NHPoisson" # depends on broken package nlopt
@@ -1586,7 +1576,6 @@ let
     "Rblpapi" # broken build
     "Rchemcpp" # depends on broken package ChemmineR
     "rchess" # depends on broken package V8
-    "Rchoice" # depends on broken package car
     "Rcmdr" # depends on broken package nlopt
     "RcmdrMisc" # depends on broken package nlopt
     "RcmdrPlugin_BCA" # depends on broken package nlopt
@@ -1726,7 +1715,6 @@ let
     "specmine" # depends on broken package caret
     "splm" # depends on broken package car
     "spocc" # depends on broken package V8
-    "spoccutils" # depends on broken spocc
     "ssmrob" # depends on broken package nlopt
     "StatMethRank" # broken build
     "stepp" # depends on broken package nlopt
@@ -1737,7 +1725,6 @@ let
     "systemfit" # depends on broken package nlopt
     "TcGSA" # depends on broken package nlopt
     "TDMR" # depends on broken package nlopt
-    "TextoMineR"  # depends on broken package FactoMineR
     "TFBSTools" # depends on broken package DirichletMultinomial
     "tigerstats" # depends on broken package nlopt
     "TLBC" # depends on broken package caret
@@ -1759,17 +1746,14 @@ let
     "variancePartition" # depends on broken package lme4
     "VBmix" # broken build
     "VIM" # depends on broken package nlopt
-    "VIMGUI" # depends on broken package nlopt
     "vows" # depends on broken package nlopt
     "webp" # build is broken
     "wfe" # depends on broken package nlopt
-    "wordbankr" # depends on broken package RMySQL
     "xergm" # depends on broken package nlopt
     "xps" # build is broken
     "ZeligChoice" # depends on broken package AER
     "Zelig" # depends on broken package AER
     "zetadiv" # depends on broken package nlopt
-    "zoib" # broken build
   ];
 
   otherOverrides = old: new: {
