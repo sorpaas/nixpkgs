@@ -3305,6 +3305,8 @@ in
   rtmpdump_gnutls = rtmpdump.override { gnutlsSupport = true; opensslSupport = false; };
 
   reaverwps = callPackage ../tools/networking/reaver-wps {};
+  
+  reaverwps-t6x = callPackage ../tools/networking/reaver-wps-t6x {};
 
   recordmydesktop = callPackage ../applications/video/recordmydesktop { };
 
