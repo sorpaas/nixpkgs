@@ -264,6 +264,8 @@ in
   fetchNuGet = callPackage ../build-support/fetchnuget { };
   buildDotnetPackage = callPackage ../build-support/build-dotnet-package { };
 
+  fetchgx = callPackage ../build-support/fetchgx { };
+
   resolveMirrorURLs = {url}: fetchurl {
     showURLs = true;
     inherit url;
