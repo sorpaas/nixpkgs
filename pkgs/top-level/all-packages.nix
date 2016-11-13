@@ -758,6 +758,8 @@ in
 
   deis = callPackage ../development/tools/deis {};
 
+  devmem2 = callPackage ../os-specific/linux/devmem2 { };
+
   diagrams-builder = callPackage ../tools/graphics/diagrams-builder {
     inherit (haskellPackages) ghcWithPackages diagrams-builder;
   };
@@ -1760,13 +1762,9 @@ in
 
   gitinspector = callPackage ../applications/version-management/gitinspector { };
 
-  gitlab = callPackage ../applications/version-management/gitlab {
-    ruby = ruby_2_2;
-  };
+  gitlab = callPackage ../applications/version-management/gitlab { };
 
-  gitlab-shell = callPackage ../applications/version-management/gitlab-shell {
-    ruby = ruby_2_2;
-  };
+  gitlab-shell = callPackage ../applications/version-management/gitlab-shell { };
 
   gitlab-workhorse = callPackage ../applications/version-management/gitlab-workhorse { };
 
@@ -2354,16 +2352,7 @@ in
 
   ninka = callPackage ../development/tools/misc/ninka { };
 
-  nodejs-0_10 = callPackage ../development/web/nodejs/v0_10.nix {
-    libtool = darwin.cctools;
-    inherit (darwin.apple_sdk.frameworks) CoreServices ApplicationServices Carbon Foundation;
-  };
-
   nodejs-4_x = callPackage ../development/web/nodejs/v4.nix {
-    libtool = darwin.cctools;
-  };
-
-  nodejs-5_x = callPackage ../development/web/nodejs/v5.nix {
     libtool = darwin.cctools;
   };
 
@@ -2371,31 +2360,17 @@ in
     libtool = darwin.cctools;
   };
 
-  nodejs = if stdenv.system == "armv5tel-linux" then
-    nodejs-0_10
-  else
-    nodejs-4_x;
+  nodejs = nodejs-4_x;
 
   nodePackages_6_x = callPackage ../development/node-packages/default-v6.nix {
     nodejs = pkgs.nodejs-6_x;
-  };
-
-  nodePackages_5_x = callPackage ../development/node-packages/default-v5.nix {
-    nodejs = pkgs.nodejs-5_x;
   };
 
   nodePackages_4_x = callPackage ../development/node-packages/default-v4.nix {
     nodejs = pkgs.nodejs-4_x;
   };
 
-  nodePackages_0_10 = callPackage ../development/node-packages/default-v0_10.nix {
-    nodejs = pkgs.nodejs-0_10;
-  };
-
-  nodePackages = if stdenv.system == "armv5tel-linux" then
-    nodePackages_0_10
-  else
-    nodePackages_4_x;
+  nodePackages = nodePackages_4_x;
 
   # Can be used as a user shell
   nologin = shadow;
@@ -4688,16 +4663,19 @@ in
     version = "4.7-2013q3-20130916";
     releaseType = "update";
     sha256 = "1bd9bi9q80xn2rpy0rn1vvj70rh15kb7dmah0qs4q2rv78fqj40d";
+    ncurses = pkgsi686Linux.ncurses5;
   };
   gcc-arm-embedded-4_8 = callPackage_i686 ../development/compilers/gcc-arm-embedded {
     version = "4.8-2014q1-20140314";
     releaseType = "update";
     sha256 = "ce92859550819d4a3d1a6e2672ea64882b30afa2c08cf67fa8e1d93788c2c577";
+    ncurses = pkgsi686Linux.ncurses5;
   };
   gcc-arm-embedded-4_9 = callPackage_i686 ../development/compilers/gcc-arm-embedded {
     version = "4.9-2015q1-20150306";
     releaseType = "update";
     sha256 = "c5e0025b065750bbd76b5357b4fc8606d88afbac9ff55b8a82927b4b96178154";
+    ncurses = pkgsi686Linux.ncurses5;
   };
   gcc-arm-embedded-5 = pkgs.callPackage_i686 ../development/compilers/gcc-arm-embedded {
     dirName = "5.0";
@@ -4705,6 +4683,7 @@ in
     version = "5.4-2016q2-20160622";
     releaseType = "update";
     sha256 = "1r0rqbnw7rf94f5bsa3gi8bick4xb7qnp1dkvdjfbvqjvysvc44r";
+    ncurses = pkgsi686Linux.ncurses5;
   };
   gcc-arm-embedded = self.gcc-arm-embedded-5;
 
@@ -4730,6 +4709,8 @@ in
     doHaddock = false;
     postFixup = "rm -rf $out/lib $out/nix-support $out/share/doc";
   });
+
+  all-cabal-hashes = callPackage ../data/misc/hackage/default.nix { };
 
   haxe = callPackage ../development/compilers/haxe {
     inherit (ocamlPackages) camlp4;
@@ -5494,7 +5475,7 @@ in
   ocaml-top = callPackage ../development/tools/ocaml/ocaml-top { };
 
   opa = callPackage ../development/compilers/opa {
-    nodejs = nodejs-0_10;
+    nodejs = nodejs-4_x;
   };
 
   opam_1_0_0 = callPackage ../development/tools/ocaml/opam/1.0.0.nix { };
@@ -6438,6 +6419,8 @@ in
   github-release = callPackage ../development/tools/github/github-release { };
 
   global = callPackage ../development/tools/misc/global { };
+
+  gn = callPackage ../development/tools/build-managers/gn { };
 
   gnome_doc_utils = callPackage ../development/tools/documentation/gnome-doc-utils {};
 
@@ -7695,6 +7678,8 @@ in
   hivex = callPackage ../development/libraries/hivex {
     inherit (perlPackages) IOStringy;
   };
+
+  hound = callPackage ../development/tools/misc/hound { };
 
   hspell = callPackage ../development/libraries/hspell { };
 
@@ -9763,6 +9748,11 @@ in
     inherit (darwin) libobjc;
   };
 
+  webkitgtk214x = callPackage ../development/libraries/webkitgtk/2.14.nix {
+    harfbuzz = harfbuzz-icu;
+    gst-plugins-base = gst_all_1.gst-plugins-base;
+  };
+
   webkitgtk212x = callPackage ../development/libraries/webkitgtk/2.12.nix {
     harfbuzz = harfbuzz-icu;
     gst-plugins-base = gst_all_1.gst-plugins-base;
@@ -10364,7 +10354,7 @@ in
 
   grafana = callPackage ../servers/monitoring/grafana { };
 
-  groovebasin = callPackage ../applications/audio/groovebasin { nodejs = nodejs-0_10; };
+  groovebasin = callPackage ../applications/audio/groovebasin { nodejs = nodejs-4_x; };
 
   haka = callPackage ../tools/security/haka { };
 
@@ -11236,20 +11226,6 @@ in
       ];
   };
 
-  linux_4_7 = callPackage ../os-specific/linux/kernel/linux-4.7.nix {
-    kernelPatches =
-      [ kernelPatches.bridge_stp_helper
-        # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
-        # when adding a new linux version
-        kernelPatches.cpu-cgroup-v2."4.7"
-      ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
   linux_4_8 = callPackage ../os-specific/linux/kernel/linux-4.8.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
@@ -11434,9 +11410,7 @@ in
   linuxPackages_3_18 = recurseIntoAttrs (self.linuxPackagesFor self.linux_3_18 linuxPackages_3_18);
   linuxPackages_4_1 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_1 linuxPackages_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_4 linuxPackages_4_4);
-  linuxPackages_4_7 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_7 linuxPackages_4_7);
   linuxPackages_4_8 = recurseIntoAttrs (self.linuxPackagesFor self.linux_4_8 linuxPackages_4_8);
-  # Don't forget to update linuxPackages_latest!
 
   # Intentionally lacks recurseIntoAttrs, as -rc kernels will quite likely break out-of-tree modules and cause failed Hydra builds.
   linuxPackages_testing = self.linuxPackagesFor self.linux_testing linuxPackages_testing;
@@ -12583,7 +12557,6 @@ in
     pulseSupport = config.pulseaudio or true;
     enablePepperFlash = config.chromium.enablePepperFlash or false;
     enableWideVine = config.chromium.enableWideVine or false;
-    hiDPISupport = config.chromium.hiDPISupport or false;
   };
 
   chronos = callPackage ../applications/networking/cluster/chronos { };
@@ -14761,7 +14734,7 @@ in
   stella = callPackage ../misc/emulators/stella { };
 
   statsd = callPackage ../tools/networking/statsd {
-    nodejs = nodejs-0_10;
+    nodejs = nodejs-4_x;
   };
 
   linuxstopmotion = callPackage ../applications/video/linuxstopmotion { };
