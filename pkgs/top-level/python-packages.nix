@@ -33,6 +33,7 @@ let
     curses = null;
     curses_panel = null;
     crypt = null;
+    tkinter = null;
   };
 
 in modules // {
@@ -4038,11 +4039,11 @@ in modules // {
   cryptography = buildPythonPackage rec {
     # also bump cryptography_vectors
     name = "cryptography-${version}";
-    version = "1.5.1";
+    version = "1.5.3";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/c/cryptography/${name}.tar.gz";
-      sha256 = "1d8da8xbx51m4dqpy51crvcmjakmfcxpx14hh2izppifrh1fs35d";
+      sha256 = "cf82ddac919b587f5e44247579b433224cc2e03332d2ea4d89aa70d7e6b64ae5";
     };
 
     buildInputs = [ pkgs.openssl self.pretend self.cryptography_vectors
@@ -4059,11 +4060,11 @@ in modules // {
   cryptography_vectors = buildPythonPackage rec {
       # also bump cryptography
     name = "cryptography_vectors-${version}";
-    version = "1.5.1";
+    version = "1.5.3";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/c/cryptography-vectors/${name}.tar.gz";
-      sha256 = "1z74mqwlvxlxz6b1xlflphqhgby1k77shl94zw5ncw3x3cqwbccl";
+      sha256 = "e513fecd146a844da19022abd1b4dfbf3335c1941464988f501d7a16f30acdae";
     };
   };
 
@@ -5121,6 +5122,27 @@ in modules // {
       description = "Distributed computation in Python.";
       homepage = "http://distributed.readthedocs.io/en/latest/";
       license = licenses.bsd3;
+      maintainers = with maintainers; [ teh ];
+    };
+  };
+
+  digital-ocean = buildPythonPackage rec {
+    name = "python-digitalocean-1.10.1";
+
+    propagatedBuildInputs = with self; [ requests2 ];
+
+    # Package doesn't distribute tests.
+    doCheck = false;
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/p/python-digitalocean/${name}.tar.gz";
+      sha256 = "12qybflfnl08acspz7rpaprmlabgrzimacbd7gm9qs5537hl3qnp";
+    };
+
+    meta = {
+      description = "digitalocean.com API to manage Droplets and Images";
+      homepage = https://pypi.python.org/pypi/python-digitalocean;
+      license = licenses.lgpl3;
       maintainers = with maintainers; [ teh ];
     };
   };
@@ -7528,17 +7550,19 @@ in modules // {
   };
 
   python-mapnik = buildPythonPackage {
-    name = "python-mapnik-fae6388";
+    name = "python-mapnik-git-2016-08-30";
 
-    src = pkgs.fetchgit {
-      url = https://github.com/mapnik/python-mapnik.git;
-      rev = "fae63881ed0945829e73f711d52740240b740936";
-      sha256 = "04k78l0xxb9cy8dbvmgldg8fgzz701gks14199h8zs2xvyi4gqd2";
+    src = pkgs.fetchFromGitHub {
+      owner = "mapnik";
+      repo = "python-mapnik";
+      rev = "541fd962d4fc99d50ec472af6ddccfdbf98cff37";
+      sha256 = "1d93qjnzggdpbhnmxlmk5jh0zd2jnpfl4n4aip5ypd39ilqibhf3";
     };
 
     disabled = isPyPy;
     doCheck = false; # doesn't find needed test data files
-    buildInputs = with pkgs; [ boost harfbuzz icu mapnik ];
+    buildInputs = with pkgs;
+      [ boost cairo harfbuzz icu libjpeg libpng libtiff libwebp mapnik proj zlib ];
     propagatedBuildInputs = with self; [ pillow pycairo ];
 
     meta = with stdenv.lib; {
@@ -9220,12 +9244,12 @@ in modules // {
 
   django_1_10 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.10.3";
+    version = "1.10.4";
     disabled = pythonOlder "2.7";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.10/${name}.tar.gz";
-      sha256 = "0c4c8zs7kzb0bdlpy4vlzv6va26dbazr32h91rldf6waxs6z14kg";
+      sha256 = "0asw60i4r5cdxb2jp6r09pdrwxxp8mvwbkz7vnx15n0hwmig1xzz";
     };
 
     patches = [
@@ -9252,12 +9276,12 @@ in modules // {
 
   django_1_9 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.9.11";
+    version = "1.9.12";
     disabled = pythonOlder "2.7";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.9/${name}.tar.gz";
-      sha256 = "17bxmfp92bdwjachjqb5zdlay5fhv4125hc85ln4ggyz0f5zvp6s";
+      sha256 = "0daaz2rp1rwwpzm5l29wcgg1gbw9yqzcv9x2dsjfz29n806q685x";
     };
 
     # patch only $out/bin to avoid problems with starter templates (see #3134)
@@ -9276,12 +9300,12 @@ in modules // {
 
   django_1_8 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.8.16";
+    version = "1.8.17";
     disabled = pythonOlder "2.7";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.8/${name}.tar.gz";
-      sha256 = "1pc1j3q64v65c573xwx64apjnf2v19nzxsidjiyp02c6l8bsyji2";
+      sha256 = "01zb2l0gcdb2wgxmvvrhjj9ccdj1mfhn6zhqcdq04m7lzi4dc6q2";
     };
 
     # too complicated to setup
@@ -9325,34 +9349,11 @@ in modules // {
 
   django_1_6 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.6.11";
+    version = "1.6.11.5";
 
     src = pkgs.fetchurl {
-      url = "http://www.djangoproject.com/m/releases/1.6/${name}.tar.gz";
-      sha256 = "0misvia78c14y07zs5xsb9lv54q0v217jpaindrmhhw4wiryal3y";
-    };
-
-    # too complicated to setup
-    doCheck = false;
-
-    # patch only $out/bin to avoid problems with starter templates (see #3134)
-    postFixup = ''
-      wrapPythonProgramsIn $out/bin "$out $pythonPath"
-    '';
-
-    meta = {
-      description = "A high-level Python Web framework";
-      homepage = https://www.djangoproject.com/;
-    };
-  };
-
-  django_1_5 = buildPythonPackage rec {
-    name = "Django-${version}";
-    version = "1.5.12";
-
-    src = pkgs.fetchurl {
-      url = "http://www.djangoproject.com/m/releases/1.5/${name}.tar.gz";
-      sha256 = "1vbcvn6ncg7hq5i1w95h746vkq9lmp120vx63h3p56z5nsz7gpmk";
+      url = "https://downloads.reviewboard.org/releases/Django/1.6/Django-${version}.tar.gz";
+      sha256 = "0yj0fw3iql031z8l5ik1fb25sk3l5bw2vc63bbyg5rz2k3znl4il";
     };
 
     # too complicated to setup
@@ -9518,24 +9519,33 @@ in modules // {
   };
 
   django_tagging = buildPythonPackage rec {
-    name = "django-tagging-0.3.1";
+    name = "django-tagging-0.4.5";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/d/django-tagging/${name}.tar.gz";
-      sha256 = "e5fbeb7ca6e0c22a9a96239095dff508040ec95171e51c69e6f8ada72ea4bce2";
+      sha256 = "00ki1g6pb2lnaj4lh0s865mmlf4kdwx7a6n38iy5qz9qv4xrvz4q";
     };
 
     # error: invalid command 'test'
     doCheck = false;
 
-    propagatedBuildInputs = with self; [ django_1_5 ];
+    propagatedBuildInputs = with self; [ django ];
 
     meta = {
       description = "A generic tagging application for Django projects";
-      homepage = http://code.google.com/p/django-tagging/;
+      homepage = https://github.com/Fantomas42/django-tagging;
     };
   };
 
+  django_tagging_0_3 = self.django_tagging.override (attrs: rec {
+    name = "django-tagging-0.3.6";
+
+    src = pkgs.fetchurl {
+      url = "mirror://pypi/d/django-tagging/${name}.tar.gz";
+      sha256 = "03zlbq13rydfh28wh0jk3x3cjk9x6jjmqnx1i3ngjmfwbxf8x6j1";
+    };
+    propagatedBuildInputs = with self; [ django_1_6 ];
+  });
 
   django_classytags = buildPythonPackage rec {
     name = "django-classy-tags-${version}";
@@ -14462,11 +14472,11 @@ in modules // {
 
   nevow = buildPythonPackage (rec {
     name = "nevow-${version}";
-    version = "0.11.1";
+    version = "0.14.2";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/N/Nevow/Nevow-${version}.tar.gz";
-      sha256 = "1z0y8a5q4fa2nmh0dap7cs9pp5xs3jm6q0g4vpwcw77q7jagdmw9";
+      sha256 = "0wsh40ysj5gvfc777nrdvf5vbkr606r1gh7ibvw7x8b5g8afdy3y";
       name = "${name}.tar.gz";
     };
 
@@ -26144,19 +26154,25 @@ in modules // {
   };
 
   libarchive-c = buildPythonPackage rec {
-    name = "libarchive-c-2.1";
+    name = "libarchive-c-${version}";
+    version = "2.5";
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/l/libarchive-c/${name}.tar.gz";
-      sha256 = "089lrz6xyrfnk55v35vis6jyqyyl77w093057djyspnd2744wi2n";
+      sha256 = "98660daa2501d2da51ab6f39893dc24e88916e72b2d80c205641faa5bce66859";
     };
 
-    patchPhase = ''
+    LC_ALL="en_US.UTF-8";
+
+    postPatch = ''
       substituteInPlace libarchive/ffi.py --replace \
-        "find_library('archive')" "'${pkgs.libarchive}/lib/libarchive.so'"
+        "find_library('archive')" "'${pkgs.libarchive.lib}/lib/libarchive.so'"
+    '';
+    checkPhase = ''
+      py.test tests -k 'not test_check_archiveentry_with_unicode_entries_and_name_zip'
     '';
 
-    buildInputs = [ pkgs.libarchive ];
+    buildInputs = with self; [ pytest pkgs.glibcLocales ];
   };
 
   pybrowserid = buildPythonPackage rec {
@@ -26648,14 +26664,15 @@ in modules // {
 
   graphite_web = buildPythonPackage rec {
     name = "graphite-web-${version}";
-    version = "0.9.12";
+    disabled = isPy3k;
+    version = "0.9.15";
 
     src = pkgs.fetchurl rec {
       url = "mirror://pypi/g/graphite-web/${name}.tar.gz";
-      sha256 = "472a4403fd5b5364939aee10e78f171b1489e5f6bfe6f150ed9cae8476410114";
+      sha256 = "1c0kclbv8shv9nvjx19wqm4asia58s3qmd9fapchc6y9fjpjax6q";
     };
 
-    propagatedBuildInputs = with self; [ django_1_5 django_tagging modules.sqlite3 whisper pycairo ldap memcached ];
+    propagatedBuildInputs = with self; [ django_1_6 django_tagging_0_3 modules.sqlite3 whisper pycairo ldap memcached pytz ];
 
     postInstall = ''
       wrapProgram $out/bin/run-graphite-devel-server.py \

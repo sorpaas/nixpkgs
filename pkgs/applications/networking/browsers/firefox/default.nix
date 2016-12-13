@@ -140,14 +140,14 @@ in {
 
   firefox-unwrapped = common {
     pname = "firefox";
-    version = "49.0.2";
-    sha512 = "e9daa62c8e645ec034f1435afb579ddb5c503db313ea0cc3e48b7508f8368028979de07ca1426cc4c0f3ae82756f39dcb3b349712d520b8503a34afbd443fb1e";
+    version = "50.0.2";
+    sha512 = "cfcc3e5a703e4d3284e3b3dcb34e5f77825e5a98b49a75bf22f8ac431c0429e6cd21c4e1f5e046fe82899cb4d2bc5b7a432b306c4af35034d83a9f351393f7fd";
   };
 
   firefox-esr-unwrapped = common {
     pname = "firefox-esr";
-    version = "45.4.0esr";
-    sha512 = "2955e02f829a10186a8b22320fb97d4b0fc2b45721fcffa6295653fd760d516ae72b5656547685ba1e0699b381e28044996d9ee12a8738842b4e6b8acd296715";
+    version = "45.5.1esr";
+    sha512 = "36c56e1486a6a35f71526bd81d01fb4fc2b9df852eb2feb39b77c902fcf90d713d8fcdcd6113978630345e1ed36fa5cf0df6da7b6bf7e85a84fe014cb11f9a03";
   };
 
 }

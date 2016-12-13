@@ -1024,4 +1024,20 @@ self: super: {
   # https://github.com/vshabanov/HsOpenSSL/issues/11
   HsOpenSSL = doJailbreak super.HsOpenSSL;
 
+  # https://hydra.nixos.org/build/42769611/nixlog/1/raw
+  # note: the library is unmaintained, no upstream issue
+  dataenc = doJailbreak super.dataenc;
+
+  libsystemd-journal = overrideCabal super.libsystemd-journal (old: {
+    # https://github.com/ocharles/libsystemd-journal/pull/17
+    jailbreak = true;
+    librarySystemDepends = old.librarySystemDepends or [] ++ [ pkgs.systemd ];
+  });
+
+  # Encountered missing dependencies: hspec >=1.3 && <2.1
+  # https://github.com/rampion/ReadArgs/issues/8
+  ReadArgs = doJailbreak super.ReadArgs;
+
+  # https://github.com/philopon/barrier/issues/3
+  barrier = doJailbreak super.barrier;
 }

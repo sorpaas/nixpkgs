@@ -1,10 +1,8 @@
 { stdenv, fetchurl, fetchpatch, dpkg, curl, libarchive, openssl, ruby, buildRubyGem, libiconv
-, libxml2, libxslt, makeWrapper }:
-
-assert stdenv.system == "x86_64-linux" || stdenv.system == "i686-linux";
+, libxml2, libxslt, makeWrapper, p7zip, xar, gzip, cpio }:
 
 let
-  version = "1.8.6";
+  version = "1.8.7";
   rake = buildRubyGem {
     inherit ruby;
     gemName = "rake";
@@ -12,9 +10,16 @@ let
     sha256 = "1rn03rqlf1iv6n87a78hkda2yqparhhaivfjpizblmxvlw2hk5r8";
   };
 
+  url = if stdenv.isLinux
+    then "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}_${arch}.deb"
+    else if stdenv.isDarwin
+      then "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}.dmg"
+      else "system ${stdenv.system} not supported";
+
   sha256 = {
-    "x86_64-linux" = "1nkhf160hcl02yvafj6hq53j204qqxyvxjngnmf4f5md8dmkpn76";
-    "i686-linux"   = "0mr4pn7nggjdsqyxh1z2mflvvmpzhbxh5gax501d2hi8xr0y68df";
+    "x86_64-linux"  = "10c77b643b73dd3ad7a45a89d8ab95b58b79dc10e0cf6e760fe24abc436b2fdb";
+    "i686-linux"    = "9d2a70f34ab65d8d2cb013917f221835432aa63cd4ef781c9fd1404cfcfe7898";
+    "x86_64-darwin" = "14d68f599a620cf421838ed037f0a1c4467e1b67475deeff62330a21fda4937b";
   }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
   arch = builtins.replaceStrings ["-linux"] [""] stdenv.system;
@@ -24,8 +29,7 @@ in stdenv.mkDerivation rec {
   inherit version;
 
   src = fetchurl {
-    url = "https://releases.hashicorp.com/vagrant/${version}/vagrant_${version}_${arch}.deb";
-    inherit sha256;
+    inherit url sha256;
   };
 
   meta = with stdenv.lib; {
@@ -33,14 +37,29 @@ in stdenv.mkDerivation rec {
     homepage    = http://vagrantup.com;
     license     = licenses.mit;
     maintainers = with maintainers; [ lovek323 globin jgeerds kamilchm ];
-    platforms   = platforms.linux;
+    platforms   = with platforms; linux ++ darwin;
   };
 
-  buildInputs = [ makeWrapper ];
+  buildInputs = [ makeWrapper ]
+    ++ stdenv.lib.optional stdenv.isDarwin [ p7zip xar gzip cpio ];
 
-  unpackPhase = ''
-    ${dpkg}/bin/dpkg-deb -x "$src" .
-  '';
+  unpackPhase = if stdenv.isLinux
+    then ''
+      ${dpkg}/bin/dpkg-deb -x "$src" .
+    ''
+    else ''
+      7z x $src
+      cd Vagrant/
+      xar -xf Vagrant.pkg
+      cd core.pkg/
+      cat Payload | gzip -d - | cpio -id
+
+      # move unpacked directories to match unpacked .deb from linux,
+      # so installPhase can be shared
+      mkdir -p opt/vagrant/ usr/
+      mv embedded opt/vagrant/embedded
+      mv bin usr/bin
+    '';
 
   buildPhase = "";
 
@@ -110,5 +129,10 @@ in stdenv.mkDerivation rec {
   postFixup = ''
     chmod +x "$out/opt/vagrant/embedded/gems/gems/bundler-1.12.5/lib/bundler/templates/Executable"
     chmod +x "$out/opt/vagrant/embedded/gems/gems/vagrant-$version/plugins/provisioners/salt/bootstrap-salt.sh"
-  '';
+  '' +
+  (stdenv.lib.optionalString stdenv.isDarwin ''
+    # undo the directory movement done in unpackPhase
+    mv $out/opt/vagrant/embedded $out/
+    rm -r $out/opt
+  '');
 }

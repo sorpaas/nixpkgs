@@ -12,13 +12,13 @@ in
 
 stdenv.mkDerivation rec {
   name = "tor-browser-${version}";
-  version = "6.0.5";
+  version = "6.0.7";
 
   src = fetchurl {
     url = "https://archive.torproject.org/tor-package-archive/torbrowser/${version}/tor-browser-linux${if stdenv.is64bit then "64" else "32"}-${version}_en-US.tar.xz";
     sha256 = if stdenv.is64bit then
-      "fc917bd702b1275cae3f7fa8036c3c44af9b4f003f3d4a8fbb9f6c0974277ad4" else
-      "e0c3ce406b6de082692ce3db52b6e04053e205194b26fbf0eee9014be543d98d";
+      "1llgqvxmn572wyxk7r1hf3j6ldi9hkgahm7918rsmsvk66i187h4" else
+      "16z8qfmcgxbvmv5hriv1gq4lpz54fy04mhhwdd6s72y52dfcvfy3";
   };
 
   desktopItem = makeDesktopItem {

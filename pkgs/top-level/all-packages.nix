@@ -3583,6 +3583,8 @@ in
 
   sshuttle = callPackage ../tools/security/sshuttle { };
 
+  ssldump = callPackage ../tools/networking/ssldump { };
+
   sstp = callPackage ../tools/networking/sstp {};
 
   sudo = callPackage ../tools/security/sudo { };
@@ -8167,6 +8169,8 @@ in
     inherit (perlPackages) libintlperl GetoptLong SysVirt;
   };
 
+  libgumbo = callPackage ../development/libraries/libgumbo { };
+
   libhangul = callPackage ../development/libraries/libhangul { };
 
   libharu = callPackage ../development/libraries/libharu { };
@@ -10596,7 +10600,8 @@ in
     postgresql92
     postgresql93
     postgresql94
-    postgresql95;
+    postgresql95
+    postgresql96;
 
   postgresql_jdbc = callPackage ../servers/sql/postgresql/jdbc { };
 
@@ -11433,8 +11438,10 @@ in
   linux_grsec_nixos = callPackage ../build-support/grsecurity {
     inherit (lib) overrideDerivation;
     kernel = callPackage ../os-specific/linux/kernel/linux-grsecurity.nix {
-      kernelPatches = with self.kernelPatches; [ bridge_stp_helper ]
-        ++ lib.optionals ((platform.kernelArch or null) == "mips")
+      kernelPatches = with self.kernelPatches; [
+        bridge_stp_helper
+        modinst_arg_list_too_long
+      ] ++ lib.optionals ((platform.kernelArch or null) == "mips")
         [ kernelPatches.mips_fpureg_emu
           kernelPatches.mips_fpu_sigill
           kernelPatches.mips_ext3_n32
@@ -13618,7 +13625,7 @@ in
   inspectrum = callPackage ../applications/misc/inspectrum { };
 
   ion3 = callPackage ../applications/window-managers/ion-3 {
-    lua = lua5;
+    lua = lua5_1;
   };
 
   ipe = qt5.callPackage ../applications/graphics/ipe {
@@ -14280,9 +14287,7 @@ in
 
   openscad = callPackage ../applications/graphics/openscad {};
 
-  opera = callPackage ../applications/networking/browsers/opera {
-    inherit (pkgs.kde4) kdelibs;
-  };
+  opera = callPackage ../applications/networking/browsers/opera {};
 
   vivaldi = callPackage ../applications/networking/browsers/vivaldi {};
 
@@ -17238,7 +17243,7 @@ in
 
   nixops = callPackage ../tools/package-management/nixops { };
 
-  nixopsUnstable = nixops;# callPackage ../tools/package-management/nixops/unstable.nix { };
+  nixopsUnstable = callPackage ../tools/package-management/nixops/unstable.nix { };
 
   nixui = callPackage ../tools/package-management/nixui { node_webkit = nwjs_0_12; };
 
