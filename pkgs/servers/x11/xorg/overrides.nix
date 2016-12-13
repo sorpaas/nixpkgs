@@ -454,6 +454,7 @@ in
         ];
         postInstall = ''
           rm -fr $out/share/X11/xkb/compiled
+          ln -s /var/tmp $out/share/X11/xkb/compiled
           wrapProgram $out/bin/Xephyr \
             --set XKB_BINDIR "${xorg.xkbcomp}/bin" \
             --add-flags "-xkbdir ${xorg.xkeyboardconfig}/share/X11/xkb"
@@ -505,6 +506,7 @@ in
         '';
         postInstall = ''
           rm -fr $out/share/X11/xkb/compiled
+          ln -s /var/tmp $out/share/X11/xkb/compiled
 
           cp -rT ${darwinOtherX}/bin $out/bin
           rm -f $out/bin/X
