@@ -859,6 +859,8 @@ in
 
   interlock = callPackage ../servers/interlock {};
 
+  languagetool = callPackage ../tools/text/languagetool {  };
+
   long-shebang = callPackage ../misc/long-shebang {};
 
   mathics = pythonPackages.mathics;
@@ -2684,6 +2686,8 @@ in
 
   mysql2pgsql = callPackage ../tools/misc/mysql2pgsql { };
 
+  mysqltuner = callPackage ../tools/misc/mysqltuner { };
+
   nabi = callPackage ../tools/inputmethods/nabi { };
 
   namazu = callPackage ../tools/text/namazu { };
@@ -3713,7 +3717,7 @@ in
 
   thc-hydra = callPackage ../tools/security/thc-hydra { };
 
-  tiled = qt5.callPackage ../applications/editors/tiled { };
+  tiled = qt55.callPackage ../applications/editors/tiled { };
 
   timemachine = callPackage ../applications/audio/timemachine { };
 
@@ -4703,7 +4707,7 @@ in
 
   # Haskell and GHC
 
-  haskell = callPackage ./haskell-packages.nix { };
+  haskell = callPackage ./haskell-packages.nix { inherit crossSystem; };
 
   haskellPackages = haskell.packages.ghc801.override {
     overrides = config.haskellPackageOverrides or (self: super: {});
@@ -7382,8 +7386,6 @@ in
     }
   );
 
-  libgit2_0_21 = callPackage ../development/libraries/git2/0.21.nix { };
-
   gle = callPackage ../development/libraries/gle { };
 
   glew = callPackage ../development/libraries/glew { };
@@ -8558,7 +8560,7 @@ in
 
   libtorrentRasterbar = callPackage ../development/libraries/libtorrent-rasterbar { };
 
-  libtorrentRasterbar_1_09 = callPackage ../development/libraries/libtorrent-rasterbar/1.09.nix { };
+  libtorrentRasterbar_1_0 = callPackage ../development/libraries/libtorrent-rasterbar/1.0.nix { };
 
   libtorrentRasterbar_0_16 = callPackage ../development/libraries/libtorrent-rasterbar/0.16.nix {
     # fix "unrecognized option -arch" error
@@ -10382,6 +10384,8 @@ in
 
   jetty = callPackage ../servers/http/jetty { };
 
+  knot-dns = callPackage ../servers/dns/knot-dns { };
+
   rdkafka = callPackage ../development/libraries/rdkafka { };
 
   leafnode = callPackage ../servers/news/leafnode { };
@@ -11168,6 +11172,7 @@ in
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
         kernelPatches.hiddev_CVE_2016_5829
+        kernelPatches.packet_fix_race_condition_CVE_2016_8655
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11177,11 +11182,18 @@ in
   };
 
   linux_rpi = callPackage ../os-specific/linux/kernel/linux-rpi.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper ];
+    kernelPatches = with kernelPatches; [
+      bridge_stp_helper
+      packet_fix_race_condition_CVE_2016_8655
+    ];
   };
 
   linux_3_10 = callPackage ../os-specific/linux/kernel/linux-3.10.nix {
-    kernelPatches = with kernelPatches; [ bridge_stp_helper lguest_entry-linkage ]
+    kernelPatches = with kernelPatches;
+      [ bridge_stp_helper
+        lguest_entry-linkage
+        packet_fix_race_condition_CVE_2016_8655
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -11190,7 +11202,9 @@ in
   };
 
   linux_3_12 = callPackage ../os-specific/linux/kernel/linux-3.12.nix {
-    kernelPatches = with kernelPatches; [ bridge_stp_helper crc_regression ]
+    kernelPatches = with kernelPatches;
+      [ bridge_stp_helper
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -11208,7 +11222,10 @@ in
   };
 
   linux_3_18 = callPackage ../os-specific/linux/kernel/linux-3.18.nix {
-    kernelPatches = [ kernelPatches.bridge_stp_helper ]
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.packet_fix_race_condition_CVE_2016_8655
+      ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -11219,6 +11236,7 @@ in
   linux_4_1 = callPackage ../os-specific/linux/kernel/linux-4.1.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
+        kernelPatches.packet_fix_race_condition_CVE_2016_8655
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11231,6 +11249,7 @@ in
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
         kernelPatches.cpu-cgroup-v2."4.4"
+        kernelPatches.p9_caching_4_4
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -11653,6 +11672,7 @@ in
   watch = callPackage ../os-specific/linux/procps/watch.nix { };
 
   qemu_kvm = lowPrio (qemu.override { x86Only = true; });
+  qemu_test = lowPrio (qemu.override { x86Only = true; nixosTestRunner = true; });
 
   firmwareLinuxNonfree = callPackage ../os-specific/linux/firmware/firmware-linux-nonfree { };
 
@@ -13227,13 +13247,17 @@ in
 
   flac = callPackage ../applications/audio/flac { };
 
-  flashplayer = callPackage ../applications/networking/browsers/mozilla-plugins/flashplayer-11 {
-    debug = config.flashplayer.debug or false;
+  flashplayer = callPackage ../applications/networking/browsers/mozilla-plugins/flashplayer {
+      debug = config.flashplayer.debug or false;
   };
 
-  flashplayer-standalone = self.pkgsi686Linux.flashplayer.sa;
+  flashplayer-standalone = callPackage ../applications/networking/browsers/mozilla-plugins/flashplayer/standalone.nix {
+      debug = config.flashplayer.debug or false;
+  };
 
-  flashplayer-standalone-debugger = (self.pkgsi686Linux.flashplayer.override { debug = true; }).sa;
+  flashplayer-standalone-debugger = self.flashplayer-standalone.override {
+      debug = true;
+  };
 
   fluxbox = callPackage ../applications/window-managers/fluxbox { };
 
@@ -14465,7 +14489,7 @@ in
 
   qbittorrent = qt5.callPackage ../applications/networking/p2p/qbittorrent {
     boost = boost;
-    libtorrentRasterbar = libtorrentRasterbar_1_09;
+    libtorrentRasterbar = libtorrentRasterbar_1_0;
   };
 
   eiskaltdcpp = callPackage ../applications/networking/p2p/eiskaltdcpp { lua5 = lua5_1; };
