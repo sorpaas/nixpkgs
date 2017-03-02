@@ -237,11 +237,11 @@ assert nvenc -> nvidia-video-sdk != null && nonfreeLicensing;
 
 stdenv.mkDerivation rec {
   name = "ffmpeg-full-${version}";
-  version = "3.1.3";
+  version = "3.1.6";
 
   src = fetchurl {
-    url = "https://www.ffmpeg.org/releases/ffmpeg-${version}.tar.xz";
-    sha256 = "08l8290gipm632dhrqndnphdpkc5ncqc1j3hxdx46r1a3q3mqmzq";
+    url = "https://www.ffmpeg.org/releases/ffmpeg-${version}.tar.bz2";
+    sha256 = "0c9g9zhrnvbfwwcca35jis7f7njskhzrwa7n7wpd1618cms2kjvx";
   };
 
   patchPhase = ''patchShebangs .
@@ -416,7 +416,7 @@ stdenv.mkDerivation rec {
     ++ optional ((isLinux || isFreeBSD) && libva != null) libva
     ++ optionals isLinux [ alsaLib libraw1394 libv4l ]
     ++ optionals nvenc [ nvidia-video-sdk ]
-    ++ optionals stdenv.isDarwin [ Cocoa CoreServices CoreAudio AVFoundation 
+    ++ optionals stdenv.isDarwin [ Cocoa CoreServices CoreAudio AVFoundation
                                    MediaToolbox VideoDecodeAcceleration ];
 
   # Build qt-faststart executable
@@ -471,11 +471,11 @@ stdenv.mkDerivation rec {
     description = "A complete, cross-platform solution to record, convert and stream audio and video";
     homepage = https://www.ffmpeg.org/;
     longDescription = ''
-      FFmpeg is the leading multimedia framework, able to decode, encode, transcode, 
-      mux, demux, stream, filter and play pretty much anything that humans and machines 
-      have created. It supports the most obscure ancient formats up to the cutting edge. 
-      No matter if they were designed by some standards committee, the community or 
-      a corporation. 
+      FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+      mux, demux, stream, filter and play pretty much anything that humans and machines
+      have created. It supports the most obscure ancient formats up to the cutting edge.
+      No matter if they were designed by some standards committee, the community or
+      a corporation.
     '';
     license = (
       if nonfreeLicensing then
