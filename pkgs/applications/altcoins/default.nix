@@ -34,4 +34,9 @@ rec {
 
   stellar-core = callPackage ./stellar-core.nix { };
 
+  zcash = callPackage ./zcash {
+    withGui = false;
+    openssl = pkgs.openssl_1_1_0;
+    boost = pkgs.boost163;
+  };
 }
