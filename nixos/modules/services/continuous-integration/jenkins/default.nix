@@ -109,6 +109,14 @@ in {
           Additional command line arguments to pass to Jenkins.
         '';
       };
+
+      extraJavaOptions = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Additional command line arguments to pass to Java.
+        '';
+      };
     };
   };
 
@@ -154,7 +162,7 @@ in {
       '';
 
       script = ''
-        ${pkgs.jdk}/bin/java -jar ${pkgs.jenkins}/webapps/jenkins.war --httpListenAddress=${cfg.listenAddress} \
+        ${pkgs.jdk}/bin/java ${concatStringsSep " " cfg.extraJavaOptions} -jar ${pkgs.jenkins}/webapps/jenkins.war --httpListenAddress=${cfg.listenAddress} \
                                                   --httpPort=${toString cfg.port} \
                                                   --prefix=${cfg.prefix} \
                                                   ${concatStringsSep " " cfg.extraOptions}
