@@ -21,6 +21,7 @@ let
     '';
 
   conf = pkgs.writeText "scollector.toml" ''
+    ${cfg.extraHeadConfig}
     Host = "${cfg.bosunHost}"
     ColDir = "${collectors}"
     ${cfg.extraConfig}
@@ -100,6 +101,14 @@ in {
         default = "";
         description = ''
           Extra scollector configuration added to the end of scollector.toml
+        '';
+      };
+
+      extraHeadConfig = mkOption {
+        type = types.lines;
+        default = "";
+        description = ''
+          Extra configuration to be put in the beginning of scollector.toml
         '';
       };
 
