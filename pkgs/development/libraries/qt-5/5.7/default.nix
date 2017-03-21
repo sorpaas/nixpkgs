@@ -14,28 +14,30 @@ top-level attribute to `top-level/all-packages.nix`.
 
 */
 
-{ pkgs
+{
+  newScope,
+  stdenv, fetchurl, makeSetupHook, makeWrapper,
+  bison, cups ? null, harfbuzz, mesa, perl,
+  gstreamer, gst-plugins-base,
 
-# options
-, developerBuild ? false
-, decryptSslTraffic ? false
+  # options
+  developerBuild ? false,
+  decryptSslTraffic ? false,
 }:
-
-let inherit (pkgs) makeSetupHook makeWrapper stdenv; in
 
 with stdenv.lib;
 
 let
 
   mirror = "http://download.qt.io";
-  srcs = import ./srcs.nix { inherit (pkgs) fetchurl; inherit mirror; };
+  srcs = import ./srcs.nix { inherit fetchurl; inherit mirror; };
 
   qtSubmodule = args:
     let
       inherit (args) name;
       version = args.version or srcs."${name}".version;
       src = args.src or srcs."${name}".src;
-      inherit (pkgs.stdenv) mkDerivation;
+      inherit (stdenv) mkDerivation;
     in mkDerivation (args // {
       name = "${name}-${version}";
       inherit src;
@@ -43,14 +45,14 @@ let
       propagatedBuildInputs = args.qtInputs ++ (args.propagatedBuildInputs or []);
       nativeBuildInputs =
         (args.nativeBuildInputs or [])
-        ++ [ pkgs.perl self.qmakeHook ];
+        ++ [ perl self.qmakeHook ];
 
       NIX_QT_SUBMODULE = args.NIX_QT_SUBMODULE or true;
 
       outputs = args.outputs or [ "out" "dev" ];
       setOutputFlags = args.setOutputFlags or false;
 
-      setupHook = ./setup-hook.sh;
+      setupHook = ../qtsubmodule-setup-hook.sh;
 
       enableParallelBuilding = args.enableParallelBuilding or true;
 
@@ -64,11 +66,7 @@ let
 
       qtbase = callPackage ./qtbase {
         inherit (srcs.qtbase) src version;
-        mesa = pkgs.mesa_noglu;
-        harfbuzz = pkgs.harfbuzz-icu;
-        cups = if stdenv.isLinux then pkgs.cups else null;
-        # GNOME dependencies are not used unless gtkStyle == true
-        bison = pkgs.bison2; # error: too few arguments to function 'int yylex(...
+        inherit bison cups harfbuzz mesa;
         inherit developerBuild decryptSslTraffic;
       };
 
@@ -79,9 +77,11 @@ let
       qtimageformats = callPackage ./qtimageformats.nix {};
       qtlocation = callPackage ./qtlocation.nix {};
       qtmultimedia = callPackage ./qtmultimedia.nix {
-        inherit (pkgs.gst_all_1) gstreamer gst-plugins-base;
+        inherit gstreamer gst-plugins-base;
       };
+      qtquick1 = null;
       qtquickcontrols = callPackage ./qtquickcontrols.nix {};
+      qtquickcontrols2 = callPackage ./qtquickcontrols2.nix {};
       qtscript = callPackage ./qtscript {};
       qtsensors = callPackage ./qtsensors.nix {};
       qtserialport = callPackage ./qtserialport {};
@@ -90,7 +90,7 @@ let
       qttranslations = callPackage ./qttranslations.nix {};
       qtwayland = callPackage ./qtwayland.nix {};
       qtwebchannel = callPackage ./qtwebchannel.nix {};
-      qtwebengine = callPackage ./qtwebengine.nix {};
+      qtwebengine = callPackage ./qtwebengine {};
       qtwebkit = callPackage ./qtwebkit {};
       qtwebsockets = callPackage ./qtwebsockets.nix {};
       qtx11extras = callPackage ./qtx11extras.nix {};
@@ -98,24 +98,25 @@ let
 
       env = callPackage ../qt-env.nix {};
       full = env "qt-${qtbase.version}" [
-        qtconnectivity qtdeclarative qtdoc qtgraphicaleffects
-        qtimageformats qtlocation qtmultimedia qtquickcontrols qtscript
+        qtconnectivity qtdeclarative qtdoc qtgraphicaleffects qtimageformats
+        qtlocation qtmultimedia qtquickcontrols qtquickcontrols2 qtscript
         qtsensors qtserialport qtsvg qttools qttranslations qtwayland
-        qtwebsockets qtx11extras qtxmlpatterns
+        qtwebchannel qtwebengine qtwebkit qtwebsockets qtx11extras
+        qtxmlpatterns
       ];
 
       makeQtWrapper =
         makeSetupHook
         { deps = [ makeWrapper ]; }
-        ./make-qt-wrapper.sh;
+        ../make-qt-wrapper.sh;
 
       qmakeHook =
         makeSetupHook
         { deps = [ self.qtbase.dev ]; }
-        ./qmake-hook.sh;
+        ../qmake-hook.sh;
 
     };
 
-   self = makeScope pkgs.newScope addPackages;
+   self = makeScope newScope addPackages;
 
 in self

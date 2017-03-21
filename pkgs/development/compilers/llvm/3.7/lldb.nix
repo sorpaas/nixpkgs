@@ -8,7 +8,7 @@
 , libedit
 , llvm
 , clang-unwrapped
-, python
+, python2
 , version
 }:
 
@@ -23,7 +23,7 @@ stdenv.mkDerivation {
       scripts/Python/build-swig-Python.sh
   '';
 
-  buildInputs = [ cmake python which swig ncurses zlib libedit ];
+  buildInputs = [ cmake python2 which swig ncurses zlib libedit ];
 
   preConfigure = ''
     export CXXFLAGS="-pthread"
@@ -31,7 +31,6 @@ stdenv.mkDerivation {
   '';
 
   cmakeFlags = [
-    "-DCMAKE_BUILD_TYPE=Release"
     "-DLLDB_PATH_TO_LLVM_BUILD=${llvm}"
     "-DLLDB_PATH_TO_CLANG_BUILD=${clang-unwrapped}"
     "-DPYTHON_VERSION_MAJOR=2"

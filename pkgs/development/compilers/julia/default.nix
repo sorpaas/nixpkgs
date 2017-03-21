@@ -1,6 +1,6 @@
 { stdenv, fetchgit, fetchurl
 # build tools
-, gfortran, m4, makeWrapper, patchelf, perl, which, python2
+, gfortran, m4, makeWrapper, patchelf, perl, which, python2, paxctl
 # libjulia dependencies
 , libunwind, llvm, readline, utf8proc, zlib
 # standard library dependencies
@@ -48,12 +48,12 @@ in
 
 stdenv.mkDerivation rec {
   pname = "julia";
-  version = "0.4.6";
+  version = "0.4.7";
   name = "${pname}-${version}";
 
   src = fetchurl {
     url = "https://github.com/JuliaLang/${pname}/releases/download/v${version}/${name}.tar.gz";
-    sha256 = "17wsppmsf782icyzri34zha61wfx4brfq4h68qg17w6zimd2plg5";
+    sha256 = "09f531jhs8pyd1xng5c26x994w7q0sxxr28mr3qfw9wpkbmsc2pf";
   };
 
   prePatch = ''
@@ -66,7 +66,7 @@ stdenv.mkDerivation rec {
     ./0001-use-system-utf8proc.patch
     ./0002-use-system-suitesparse.patch
     ./0003-no-ldconfig.patch
-  ];
+  ] ++ stdenv.lib.optional stdenv.needsPax ./0004-hardened-0.4.7.patch;
 
   postPatch = ''
     patchShebangs . contrib
@@ -74,12 +74,13 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     arpack fftw fftwSinglePrec gmp libgit2 libunwind llvmShared mpfr
-    pcre2 openblas openlibm openspecfun readline suitesparse utf8proc
+    pcre2.dev openblas openlibm openspecfun readline suitesparse utf8proc
     zlib
   ] ++
     stdenv.lib.optionals stdenv.isDarwin [CoreServices ApplicationServices] ;
 
-  nativeBuildInputs = [ curl gfortran m4 makeWrapper patchelf perl python2 which ];
+  nativeBuildInputs = [ curl gfortran m4 makeWrapper patchelf perl python2 which ]
+    ++ stdenv.lib.optional stdenv.needsPax paxctl;
 
   makeFlags =
     let
@@ -121,6 +122,8 @@ stdenv.mkDerivation rec {
       "USE_SYSTEM_OPENSPECFUN=1"
       "USE_SYSTEM_PATCHELF=1"
       "USE_SYSTEM_PCRE=1"
+      "PCRE_CONFIG=${pcre2.dev}/bin/pcre2-config"
+      "PCRE_INCL_PATH=${pcre2.dev}/include/pcre2.h"
       "USE_SYSTEM_READLINE=1"
       "USE_SYSTEM_UTF8PROC=1"
       "USE_SYSTEM_ZLIB=1"

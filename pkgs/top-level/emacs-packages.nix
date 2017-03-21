@@ -56,7 +56,7 @@ let
   };
 
   melpaPackages = import ../applications/editors/emacs-modes/melpa-packages.nix {
-    inherit lib;
+    inherit external lib;
   };
 
   orgPackages = import ../applications/editors/emacs-modes/org-packages.nix {
@@ -189,30 +189,6 @@ let
     };
   };
 
-  emacs-source-directory = stdenv.mkDerivation {
-    name = "emacs-source-directory-1.0.0";
-    src = emacs.src;
-
-    # We don't want accidentally start bulding emacs one more time
-    phases = "unpackPhase buildPhase";
-
-    buildPhase = ''
-     mkdir -p $out/share/emacs/site-lisp/elpa/emacs-source-directory
-     cp -a src $out/src
-     (cd $out/src && ${emacs}/bin/etags *.c *.h)
-     cat <<EOF > $out/share/emacs/site-lisp/elpa/emacs-source-directory/emacs-source-directory-autoloads.el
-     (setq source-directory "$out")
-     (setq find-function-C-source-directory (expand-file-name "src" source-directory))
-     EOF
-     cat <<EOF > $out/share/emacs/site-lisp/elpa/emacs-source-directory/emacs-source-directory-pkg.el
-     (define-package "emacs-source-directory" "1.0.0" "Make emacs C source code available inside emacs. To use with emacsWithPackages in NixOS" '())
-     EOF
-    '';
-    meta = {
-      description = "Make emacs C source code available inside emacs. To use with emacsWithPackages in NixOS";
-    };
-  };
-
   evil-jumper = melpaBuild rec {
     pname   = "evil-jumper";
     version = "20151017";
@@ -259,6 +235,22 @@ let
     meta = {
       description = "An extension of haskell-mode that provides completion of symbols and documentation browsing";
       license = bsd3;
+    };
+  };
+
+  haskell-unicode-input-method = melpaBuild rec {
+    pname = "emacs-haskell-unicode-input-method";
+    version = "20110905.2307";
+    src = fetchFromGitHub {
+      owner = "roelvandijk";
+      repo = "emacs-haskell-unicode-input-method";
+      rev = "d8d168148c187ed19350bb7a1a190217c2915a63";
+      sha256 = "09b7bg2s9aa4s8f2kdqs4xps3jxkq5wsvbi87ih8b6id38blhf78";
+    };
+    packageRequires = [];
+    meta = {
+      homepage = "https://melpa.org/#haskell-unicode-input-method/";
+      license = lib.licenses.free;
     };
   };
 
@@ -336,6 +328,8 @@ let
       platforms = external.structured-haskell-mode.meta.platforms;
     };
   };
+
+  tramp = callPackage ../applications/editors/emacs-modes/tramp { };
 
   weechat = melpaBuild rec {
     pname   = "weechat.el";

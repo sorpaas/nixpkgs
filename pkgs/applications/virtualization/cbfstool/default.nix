@@ -2,18 +2,16 @@
 
 stdenv.mkDerivation rec {
   name = "cbfstool-${version}";
-  version = "git-2015-07-09";
+  version = "4.5";
 
   src = fetchgit {
     url = "http://review.coreboot.org/p/coreboot";
-    rev = "5d866213f42fd22aed80abb5a91d74f6d485ac3f";
-    sha256 = "1fki5670pmz1wb0yg0a0hb5cap78mgbvdhj8m2xly2kndwicg40p";
+    rev = "refs/tags/${version}";
+    sha256 = "0sc2h440x4sfp1lqnmh3xfgymf7j0rqfx00v6jqf0svfbp8a6cq5";
   };
 
-  buildInputs = [ iasl flex bison ];
-
-  hardeningDisable = [ "fortify" ];
-  CFLAGS = "-Wno-error=sign-compare";
+  nativeBuildInputs = [ flex bison ];
+  buildInputs = [ iasl ];
 
   buildPhase = ''
     export LEX=${flex}/bin/flex
@@ -28,10 +26,11 @@ stdenv.mkDerivation rec {
     '';
 
   meta = with stdenv.lib; {
-    description = "CBFS tool";
+    description = "Management utility for CBFS formatted ROM images";
     homepage = http://www.coreboot.org;
     license = licenses.gpl2;
     maintainers = [ maintainers.tstrobel ];
     platforms = platforms.linux;
   };
 }
+

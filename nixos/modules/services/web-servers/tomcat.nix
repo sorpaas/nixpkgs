@@ -27,9 +27,9 @@ in
 
       package = mkOption {
         type = types.package;
-        default = pkgs.tomcat7;
-        defaultText = "pkgs.tomcat7";
-        example = lib.literalExample "pkgs.tomcat8";
+        default = pkgs.tomcat85;
+        defaultText = "pkgs.tomcat85";
+        example = lib.literalExample "pkgs.tomcatUnstable";
         description = ''
           Which tomcat package to use.
         '';
@@ -139,7 +139,7 @@ in
     systemd.services.tomcat = {
       description = "Apache Tomcat server";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-interfaces.target" ];
+      after = [ "network.target" ];
       serviceConfig.Type = "oneshot";
       serviceConfig.RemainAfterExit = true;
 
@@ -356,7 +356,7 @@ in
           ${pkgs.su}/bin/su -s ${pkgs.bash}/bin/sh ${cfg.user} -c 'CATALINA_BASE=${cfg.baseDir} JAVA_HOME=${cfg.jdk} JAVA_OPTS="${cfg.javaOpts}" CATALINA_OPTS="${cfg.catalinaOpts}" ${tomcat}/bin/startup.sh'
       '';
 
-      postStop = ''
+      preStop = ''
         echo "Stopping tomcat..."
         CATALINA_BASE=${cfg.baseDir} JAVA_HOME=${cfg.jdk} ${pkgs.su}/bin/su -s ${pkgs.bash}/bin/sh ${cfg.user} -c ${tomcat}/bin/shutdown.sh
       '';

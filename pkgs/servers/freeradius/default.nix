@@ -2,9 +2,9 @@
 , openssl
 , linkOpenssl? true
 , openldap
-, withLdap ? false
+, withLdap ? true
 , sqlite
-, withSqlite ? false
+, withSqlite ? true
 , libpcap
 , withPcap ? true
 , libcap
@@ -15,6 +15,7 @@
 , withRedis ? false
 , libmysql
 , withMysql ? false
+, json_c
 , withJson ? false
 , libyubikey
 , withYubikey ? false
@@ -39,21 +40,26 @@ assert withCollectd -> collectd != null;
 with stdenv.lib;
 stdenv.mkDerivation rec {
   name = "freeradius-${version}";
-  version = "3.0.11";
+  version = "3.0.12";
 
-  buildInputs = [ autoreconfHook openssl talloc finger_bsd perl ]
-    ++ optional withLdap [ openldap ]
-    ++ optional withSqlite [ sqlite ]
-    ++ optional withPcap [ libpcap ]
-    ++ optional withCap [ libcap ]
-    ++ optional withMemcached [ libmemcached ]
-    ++ optional withRedis [ hiredis ]
-    ++ optional withMysql [ libmysql ]
-    ++ optional withJson [ pkgs."json-c" ]
-    ++ optional withYubikey [ libyubikey ]
-    ++ optional withCollectd [ collectd ];
+  src = fetchurl {
+    url = "ftp://ftp.freeradius.org/pub/freeradius/freeradius-server-${version}.tar.gz";
+    sha256 = "182xnb9pdsivlyfm471l90m37q9i04h7jadhkgm0ivvzrzpzcnja";
+  };
 
-  # NOTE: are the --with-{lib}-lib-dir and --with-{lib}-include-dir necessary with buildInputs ?
+  nativeBuildInputs = [ autoreconfHook ];
+
+  buildInputs = [ openssl talloc finger_bsd perl ]
+    ++ optional withLdap openldap
+    ++ optional withSqlite sqlite
+    ++ optional withPcap libpcap
+    ++ optional withCap libcap
+    ++ optional withMemcached libmemcached
+    ++ optional withRedis hiredis
+    ++ optional withMysql libmysql
+    ++ optional withJson json_c
+    ++ optional withYubikey libyubikey
+    ++ optional withCollectd collectd;
 
   configureFlags = [
      "--sysconfdir=/etc"
@@ -68,11 +74,6 @@ stdenv.mkDerivation rec {
     "sysconfdir=\${out}/etc"
     "localstatedir=\${TMPDIR}"
   ];
-
-  src = fetchurl {
-    url = "ftp://ftp.freeradius.org/pub/freeradius/freeradius-server-${version}.tar.gz";
-    sha256 = "0naxw9b060rbp4409904j6nr2zwl6wbjrbq1839xrwhmaf8p4yxr";
-  };
 
   meta = with stdenv.lib; {
     homepage = http://freeradius.org/;

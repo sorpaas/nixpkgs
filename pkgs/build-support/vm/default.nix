@@ -1,6 +1,7 @@
 { pkgs
 , kernel ? pkgs.linux
 , img ? "bzImage"
+, storeDir ? builtins.storeDir
 , rootModules ?
     [ "virtio_pci" "virtio_blk" "virtio_balloon" "virtio_rng" "ext4" "unix" "9p" "9pnet_virtio" "rtc_cmos" ]
 }:
@@ -128,8 +129,8 @@ rec {
     mount -t devpts none /fs/dev/pts
 
     echo "mounting Nix store..."
-    mkdir -p /fs/nix/store
-    mount -t 9p store /fs/nix/store -o trans=virtio,version=9p2000.L,cache=loose
+    mkdir -p /fs${storeDir}
+    mount -t 9p store /fs${storeDir} -o trans=virtio,version=9p2000.L,cache=loose
 
     mkdir -p /fs/tmp /fs/run /fs/var
     mount -t tmpfs -o "mode=1777" none /fs/tmp
@@ -172,7 +173,7 @@ rec {
     # apparent KVM > 1.5.2 bug.
     ${pkgs.utillinux}/bin/hwclock -s
 
-    export NIX_STORE=/nix/store
+    export NIX_STORE=${storeDir}
     export NIX_BUILD_TOP=/tmp
     export TMPDIR=/tmp
     export PATH=/empty
@@ -220,7 +221,7 @@ rec {
       ${lib.optionalString (pkgs.stdenv.system == "x86_64-linux") "-cpu kvm64"} \
       -nographic -no-reboot \
       -device virtio-rng-pci \
-      -virtfs local,path=/nix/store,security_model=none,mount_tag=store \
+      -virtfs local,path=${storeDir},security_model=none,mount_tag=store \
       -virtfs local,path=$TMPDIR/xchg,security_model=none,mount_tag=xchg \
       -drive file=$diskImage,if=virtio,cache=unsafe,werror=report \
       -kernel ${kernel}/${img} \
@@ -240,6 +241,14 @@ rec {
     diskImage=''${diskImage:-/dev/null}
 
     eval "$preVM"
+
+    if [ "$enableParallelBuilding" = 1 ]; then
+      if [ ''${NIX_BUILD_CORES:-0} = 0 ]; then
+        QEMU_OPTS+=" -smp cpus=$(nproc)"
+      else
+        QEMU_OPTS+=" -smp cpus=$NIX_BUILD_CORES"
+      fi
+    fi
 
     # Write the command to start the VM to a file so that the user can
     # debug inside the VM if the build fails (when Nix is called with
@@ -262,9 +271,12 @@ rec {
       exit 1
     fi
 
-    eval "$postVM"
+    exitCode="$(cat xchg/in-vm-exit)"
+    if [ "$exitCode" != "0" ]; then
+      exit "$exitCode"
+    fi
 
-    exit $(cat xchg/in-vm-exit)
+    eval "$postVM"
   '';
 
 
@@ -295,7 +307,7 @@ rec {
 
   /* Run a derivation in a Linux virtual machine (using Qemu/KVM).  By
      default, there is no disk image; the root filesystem is a tmpfs,
-     and /nix/store is shared with the host (via the 9P protocol).
+     and the nix store is shared with the host (via the 9P protocol).
      Thus, any pure Nix derivation should run unmodified, e.g. the
      call
 
@@ -431,8 +443,8 @@ rec {
         chroot=$(type -tP chroot)
 
         # Make the Nix store available in /mnt, because that's where the RPMs live.
-        mkdir -p /mnt/nix/store
-        ${utillinux}/bin/mount -o bind /nix/store /mnt/nix/store
+        mkdir -p /mnt${storeDir}
+        ${utillinux}/bin/mount -o bind ${storeDir} /mnt${storeDir}
 
         # Newer distributions like Fedora 18 require /lib etc. to be
         # symlinked to /usr.
@@ -471,7 +483,7 @@ rec {
 
         rm /mnt/.debug
 
-        ${utillinux}/bin/umount /mnt/nix/store /mnt/tmp ${lib.optionalString unifiedSystemDir "/mnt/proc"}
+        ${utillinux}/bin/umount /mnt${storeDir} /mnt/tmp ${lib.optionalString unifiedSystemDir "/mnt/proc"}
         ${utillinux}/bin/umount /mnt
       '';
 
@@ -534,8 +546,7 @@ rec {
 
       # Hacky: RPM looks for <basename>.spec inside the tarball, so
       # strip off the hash.
-      stripHash "$src"
-      srcName="$strippedName"
+      srcName="$(stripHash "$src")"
       cp "$src" "$srcName" # `ln' doesn't work always work: RPM requires that the file is owned by root
 
       export HOME=/tmp/home
@@ -602,8 +613,8 @@ rec {
         done
 
         # Make the Nix store available in /mnt, because that's where the .debs live.
-        mkdir -p /mnt/inst/nix/store
-        ${utillinux}/bin/mount -o bind /nix/store /mnt/inst/nix/store
+        mkdir -p /mnt/inst${storeDir}
+        ${utillinux}/bin/mount -o bind ${storeDir} /mnt/inst${storeDir}
         ${utillinux}/bin/mount -o bind /proc /mnt/proc
         ${utillinux}/bin/mount -o bind /dev /mnt/dev
 
@@ -651,7 +662,7 @@ rec {
 
         rm /mnt/.debug
 
-        ${utillinux}/bin/umount /mnt/inst/nix/store
+        ${utillinux}/bin/umount /mnt/inst${storeDir}
         ${utillinux}/bin/umount /mnt/proc
         ${utillinux}/bin/umount /mnt/dev
         ${utillinux}/bin/umount /mnt
@@ -855,7 +866,7 @@ rec {
       fullName = "Fedora 10 (i386)";
       packagesList = fetchurl {
         url = mirror://fedora/linux/releases/10/Everything/i386/os/repodata/beeea88d162e76993c25b9dd8139868274ee7fa1-primary.xml.gz;
-        sha1 = "beeea88d162e76993c25b9dd8139868274ee7fa1";
+        sha256 = "17lyvzqjsxw3ll7726dpg14f9jc2p3fz5cr5cwd8hp3rkm5nfclv";
       };
       urlPrefix = mirror://fedora/linux/releases/10/Everything/i386/os;
       packages = commonFedoraPackages ++ [ "cronie" "util-linux-ng" ];
@@ -866,7 +877,7 @@ rec {
       fullName = "Fedora 10 (x86_64)";
       packagesList = fetchurl {
         url = mirror://fedora/linux/releases/10/Everything/x86_64/os/repodata/7958210175e86b5cc843cf4bd0bc8659e445e261-primary.xml.gz;
-        sha1 = "7958210175e86b5cc843cf4bd0bc8659e445e261";
+        sha256 = "02pzqmb26zmmzdni11dip3bar4kr54ddsrq9z4vda7ldwwkqd3py";
       };
       urlPrefix = mirror://fedora/linux/releases/10/Everything/x86_64/os;
       archs = ["noarch" "x86_64"];
@@ -1314,7 +1325,7 @@ rec {
       fullName = "Ubuntu 7.10 Gutsy (i386)";
       packagesList = fetchurl {
         url = mirror://ubuntu/dists/gutsy/main/binary-i386/Packages.bz2;
-        sha1 = "8b52ee3d417700e2b2ee951517fa25a8792cabfd";
+        sha256 = "0fmac8svxq86a4w878g6syczvy5ff4jrdc1gajd3xd8z0dypnw27";
       };
       urlPrefix = mirror://ubuntu;
       packages = commonDebianPackages;
@@ -1325,7 +1336,7 @@ rec {
       fullName = "Ubuntu 8.04 Hardy (i386)";
       packagesList = fetchurl {
         url = mirror://ubuntu/dists/hardy/main/binary-i386/Packages.bz2;
-        sha1 = "db74581ee75cb3bee2a8ae62364e97956c723259";
+        sha256 = "19132nc9fhdfmgmvn834lk0d8c0n3jv0ndz9inyynh9k6pc8b5hd";
       };
       urlPrefix = mirror://ubuntu;
       packages = commonDebianPackages;
@@ -1336,7 +1347,7 @@ rec {
       fullName = "Ubuntu 8.04 Hardy (amd64)";
       packagesList = fetchurl {
         url = mirror://ubuntu/dists/hardy/main/binary-amd64/Packages.bz2;
-        sha1 = "d1f1d2b3cc62533d6e4337f2696a5d27235d1f28";
+        sha256 = "1xjcgh0ydixmim7kgxss0mhfw0sibpgygvgsyac4bdz9m503sj3h";
       };
       urlPrefix = mirror://ubuntu;
       packages = commonDebianPackages;
@@ -1400,7 +1411,7 @@ rec {
     ubuntu910x86_64 = {
       name = "ubuntu-9.10-karmic-amd64";
       fullName = "Ubuntu 9.10 Karmic (amd64)";
-     packagesList = fetchurl {
+      packagesList = fetchurl {
         url = mirror://ubuntu/dists/karmic/main/binary-amd64/Packages.bz2;
         sha256 = "3a604fcb0c135eeb8b95da3e90a8fd4cfeff519b858cd3c9e62ea808cb9fec40";
       };

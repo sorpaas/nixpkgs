@@ -12,7 +12,7 @@
 
 let
 
-  basename = "gdb-7.11.1";
+  basename = "gdb-7.12.1";
 
   # Whether (cross-)building for GNU/Hurd.  This is an approximation since
   # having `stdenv ? cross' doesn't tell us if we're building `crossDrv' and
@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://gnu/gdb/${basename}.tar.xz";
-    sha256 = "0w7wi1llznlqdqk2lmzygz2xylb2c9mh580s9i0rypkmwfj6s8g9";
+    sha256 = "11ii260h1sd7v0bs3cz6d5l8gqxxgldry0md60ncjgixjw5nh1s6";
   };
 
   nativeBuildInputs = [ pkgconfig texinfo perl ]
@@ -42,6 +42,9 @@ stdenv.mkDerivation rec {
     ++ stdenv.lib.optional doCheck dejagnu;
 
   enableParallelBuilding = true;
+
+  # darwin build fails with format hardening since v7.12
+  hardeningDisable = stdenv.lib.optionals stdenv.isDarwin [ "format" ];
 
   configureFlags = with stdenv.lib;
     [ "--with-gmp=${gmp.dev}" "--with-mpfr=${mpfr.dev}" "--with-system-readline"

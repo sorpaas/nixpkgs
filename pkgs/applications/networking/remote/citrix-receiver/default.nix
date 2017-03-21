@@ -8,7 +8,7 @@
 , tzdata
 , cacert
 , glib
-, gtk
+, gtk2
 , atk
 , gdk_pixbuf
 , cairo
@@ -41,10 +41,12 @@ stdenv.mkDerivation rec {
 
       ${homepage}
 
+      (if you do not find version ${version} there, try https://www.citrix.com/downloads/citrix-receiver/)
+
       Once you have downloaded the file, please use the following command and re-run the
       installation:
 
-      nix-prefetch-url file://${name}
+      nix-prefetch-url file://$PWD/${name}
     '';
   };
 
@@ -56,13 +58,13 @@ stdenv.mkDerivation rec {
     makeWrapper
     busybox
     file
-    gtk
+    gtk2
     gdk_pixbuf
   ];
 
   libPath = stdenv.lib.makeLibraryPath [
     glib
-    gtk
+    gtk2
     atk
     gdk_pixbuf
     cairo
@@ -135,7 +137,7 @@ stdenv.mkDerivation rec {
 
     makeWrapper "$ICAInstDir/wfica -icaroot $ICAInstDir" "$out/bin/wfica" \
       --set ICAROOT "$ICAInstDir" \
-      --set GTK_PATH "${gtk.out}/lib/gtk-2.0:${gnome3.gnome_themes_standard}/lib/gtk-2.0" \
+      --set GTK_PATH "${gtk2.out}/lib/gtk-2.0:${gnome3.gnome_themes_standard}/lib/gtk-2.0" \
       --set GDK_PIXBUF_MODULE_FILE "$GDK_PIXBUF_MODULE_FILE" \
       --set LD_PRELOAD "${libredirect}/lib/libredirect.so" \
       --set LD_LIBRARY_PATH "$libPath" \

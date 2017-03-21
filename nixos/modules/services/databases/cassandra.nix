@@ -310,7 +310,6 @@ in {
     autoBootstrap = mkOption {
       description = "It makes new (non-seed) nodes automatically migrate the right data to themselves.";
       default = true;
-      example = true;
       type = types.bool;
     };
     streamingSocketTimoutInMS = mkOption {
@@ -377,7 +376,7 @@ in {
     systemd.services.cassandra = {
       description = "Cassandra Daemon";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-interfaces.target" ];
+      after = [ "network.target" ];
       environment = cassandraEnvironment;
       restartTriggers = [ cassandraConfFile cassandraLogFile cassandraRackFile ];
       serviceConfig = {

@@ -5,9 +5,10 @@ let
 callPackage = newScope (deps // xfce_self);
 
 deps = { # xfce-global dependency overrides should be here
-  inherit (pkgs.gnome) libglade libwnck vte gtksourceview;
+  inherit (pkgs.gnome2) libglade libwnck vte gtksourceview;
   inherit (pkgs.gnome3) dconf;
   inherit (pkgs.perlPackages) URI;
+  gtk = pkgs.gtk2;
 };
 
 xfce_self = rec { # the lines are very long but it seems better than the even-odd line approach
@@ -31,9 +32,9 @@ xfce_self = rec { # the lines are very long but it seems better than the even-od
   thunar          = callPackage ./core/thunar.nix { };
   thunarx-2-dev   = thunar-build; # Plugins need only the `thunarx-2` part of the package. Awaiting multiple outputs.
   thunar_volman   = callPackage ./core/thunar-volman.nix { }; # ToDo: probably inside Thunar now
-  thunar-archive-plugin 
+  thunar-archive-plugin
                   = callPackage ./thunar-plugins/archive { };
-  thunar-dropbox-plugin 
+  thunar-dropbox-plugin
                   = callPackage ./thunar-plugins/dropbox { };
   tumbler         = callPackage ./core/tumbler.nix { };
   xfce4panel      = callPackage ./core/xfce4-panel.nix { }; # ToDo: impure plugins from /run/current-system/sw/lib/xfce4
@@ -71,29 +72,31 @@ xfce_self = rec { # the lines are very long but it seems better than the even-od
 
   #### PANEL PLUGINS        from "mirror://xfce/src/panel-plugins/${p_name}/${ver_maj}/${name}.tar.{bz2,gz}"
 
-  xfce4_battery_plugin     = callPackage ./panel-plugins/xfce4-battery-plugin.nix     { };
-  xfce4_clipman_plugin     = callPackage ./panel-plugins/xfce4-clipman-plugin.nix     { };
-  xfce4_cpufreq_plugin     = callPackage ./panel-plugins/xfce4-cpufreq-plugin.nix     { };
-  xfce4_cpugraph_plugin    = callPackage ./panel-plugins/xfce4-cpugraph-plugin.nix    { };
-  xfce4_datetime_plugin    = callPackage ./panel-plugins/xfce4-datetime-plugin.nix    { };
-  xfce4_dict_plugin        = callPackage ./panel-plugins/xfce4-dict-plugin.nix        { };
-  xfce4_embed_plugin       = callPackage ./panel-plugins/xfce4-embed-plugin.nix       { };
-  xfce4_eyes_plugin        = callPackage ./panel-plugins/xfce4-eyes-plugin.nix        { };
-  xfce4_fsguard_plugin     = callPackage ./panel-plugins/xfce4-fsguard-plugin.nix     { };
-  xfce4_genmon_plugin      = callPackage ./panel-plugins/xfce4-genmon-plugin.nix      { };
-  xfce4_netload_plugin     = callPackage ./panel-plugins/xfce4-netload-plugin.nix     { };
-  xfce4_notes_plugin       = callPackage ./panel-plugins/xfce4-notes-plugin.nix       { };
-  xfce4_systemload_plugin  = callPackage ./panel-plugins/xfce4-systemload-plugin.nix  { };
-  xfce4_verve_plugin       = callPackage ./panel-plugins/xfce4-verve-plugin.nix       { };
-  xfce4_xkb_plugin         = callPackage ./panel-plugins/xfce4-xkb-plugin.nix         { };
-  xfce4_weather_plugin     = callPackage ./panel-plugins/xfce4-weather-plugin.nix     { };
-  xfce4_whiskermenu_plugin = callPackage ./panel-plugins/xfce4-whiskermenu-plugin.nix { };
-  xfce4_pulseaudio_plugin  = callPackage ./panel-plugins/xfce4-pulseaudio-plugin.nix  { };
+  xfce4_battery_plugin          = callPackage ./panel-plugins/xfce4-battery-plugin.nix          { };
+  xfce4_clipman_plugin          = callPackage ./panel-plugins/xfce4-clipman-plugin.nix          { };
+  xfce4_cpufreq_plugin          = callPackage ./panel-plugins/xfce4-cpufreq-plugin.nix          { };
+  xfce4_cpugraph_plugin         = callPackage ./panel-plugins/xfce4-cpugraph-plugin.nix         { };
+  xfce4_datetime_plugin         = callPackage ./panel-plugins/xfce4-datetime-plugin.nix         { };
+  xfce4_dict_plugin             = callPackage ./panel-plugins/xfce4-dict-plugin.nix             { };
+  xfce4_embed_plugin            = callPackage ./panel-plugins/xfce4-embed-plugin.nix            { };
+  xfce4_eyes_plugin             = callPackage ./panel-plugins/xfce4-eyes-plugin.nix             { };
+  xfce4_fsguard_plugin          = callPackage ./panel-plugins/xfce4-fsguard-plugin.nix          { };
+  xfce4_genmon_plugin           = callPackage ./panel-plugins/xfce4-genmon-plugin.nix           { };
+  xfce4-hardware-monitor-plugin = callPackage ./panel-plugins/xfce4-hardware-monitor-plugin.nix { };
+  xfce4_netload_plugin          = callPackage ./panel-plugins/xfce4-netload-plugin.nix          { };
+  xfce4_notes_plugin            = callPackage ./panel-plugins/xfce4-notes-plugin.nix            { };
+  xfce4_mailwatch_plugin        = callPackage ./panel-plugins/xfce4-mailwatch-plugin.nix        { };
+  xfce4_mpc_plugin              = callPackage ./panel-plugins/xfce4-mpc-plugin.nix              { };
+  xfce4-sensors-plugin          = callPackage ./panel-plugins/xfce4-sensors-plugin.nix          { };
+  xfce4_systemload_plugin       = callPackage ./panel-plugins/xfce4-systemload-plugin.nix       { };
+  xfce4_timer_plugin            = callPackage ./panel-plugins/xfce4-timer-plugin.nix            { };
+  xfce4_verve_plugin            = callPackage ./panel-plugins/xfce4-verve-plugin.nix            { };
+  xfce4_xkb_plugin              = callPackage ./panel-plugins/xfce4-xkb-plugin.nix              { };
+  xfce4_weather_plugin          = callPackage ./panel-plugins/xfce4-weather-plugin.nix          { };
+  xfce4_whiskermenu_plugin      = callPackage ./panel-plugins/xfce4-whiskermenu-plugin.nix      { };
+  xfce4_windowck_plugin         = callPackage ./panel-plugins/xfce4-windowck-plugin.nix         { };
+  xfce4_pulseaudio_plugin       = callPackage ./panel-plugins/xfce4-pulseaudio-plugin.nix       { };
 
 }; # xfce_self
 
 in xfce_self
-
-
-
-

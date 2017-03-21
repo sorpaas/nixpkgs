@@ -1,28 +1,25 @@
 { stdenv, fetchurl }:
 
 stdenv.mkDerivation rec {
-  name = "bash-completion-2.1";
+  name = "bash-completion-${version}";
+  version = "2.5";
 
   src = fetchurl {
-    url = "http://bash-completion.alioth.debian.org/files/${name}.tar.bz2";
-    sha256 = "0kxf8s5bw7y50x0ksb77d3kv0dwadixhybl818w27y6mlw26hq1b";
+    url = "https://github.com/scop/bash-completion/releases/download/${version}/${name}.tar.xz";
+    sha256 = "1kwmii1z1ljx5i4z702ynsr8jgrq64bj9w9hl3n2aa2kcl659fdh";
   };
-
-  patches = [ ./bash-4.3.patch ];
 
   doCheck = true;
 
-  # nmcli is included in the network-manager package
-  postInstall = ''
-    rm $out/share/bash-completion/completions/nmcli
+  prePatch = stdenv.lib.optionalString stdenv.isDarwin ''
+    sed -i -e 's/readlink -f/readlink/g' bash_completion completions/*
   '';
 
-  meta = {
-    homepage = "http://bash-completion.alioth.debian.org/";
+  meta = with stdenv.lib; {
+    homepage = https://github.com/scop/bash-completion;
     description = "Programmable completion for the bash shell";
-    license = "GPL";
-
-    platforms = stdenv.lib.platforms.unix;
-    maintainers = [ stdenv.lib.maintainers.peti ];
+    license = licenses.gpl2Plus;
+    platforms = platforms.unix;
+    maintainers = [ maintainers.peti ];
   };
 }

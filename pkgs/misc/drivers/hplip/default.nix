@@ -40,7 +40,7 @@ let
   hplipArch = hplipPlatforms."${stdenv.system}"
     or (throw "HPLIP not supported on ${stdenv.system}");
 
-  pluginArches = [ "x86_32" "x86_64" ];
+  pluginArches = [ "x86_32" "x86_64" "arm32" ];
 
 in
 
@@ -67,7 +67,7 @@ pythonPackages.mkPythonDerivation {
   propagatedBuildInputs = with pythonPackages; [
     dbus
     pillow
-    pygobject
+    pygobject2
     reportlab
     usbutils
   ] ++ stdenv.lib.optionals qtSupport [

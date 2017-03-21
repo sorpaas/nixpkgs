@@ -1,11 +1,14 @@
-{ stdenv, fetchurl, pkgconfig, intltool, babl, gegl, gtk, glib, gdk_pixbuf
+{ stdenv, fetchurl, pkgconfig, intltool, babl, gegl, gtk2, glib, gdk_pixbuf
 , pango, cairo, freetype, fontconfig, lcms, libpng, libjpeg, poppler, libtiff
 , webkit, libmng, librsvg, libwmf, zlib, libzip, ghostscript, aalib, jasper
-, python, pygtk, libart_lgpl, libexif, gettext, xorg, wrapPython }:
+, python2Packages, libart_lgpl, libexif, gettext, xorg
+, AppKit, Cocoa, gtk-mac-integration }:
 
-stdenv.mkDerivation rec {
+let
+  inherit (python2Packages) pygtk wrapPython python;
+in stdenv.mkDerivation rec {
   name = "gimp-${version}";
-  version = "2.8.18";
+  version = "2.8.20";
 
   # This declarations for `gimp-with-plugins` wrapper,
   # (used for determining $out/lib/gimp/${majorVersion}/ paths)
@@ -15,16 +18,17 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://download.gimp.org/pub/gimp/v2.8/${name}.tar.bz2";
-    sha256 = "0halh6sl3d2j9gahyabj6h6r3yyldcy7sfb4qrfazpkqqr3j5p9r";
+    sha256 = "939ca1df70be865c672ffd654f4e20f188121d01601c5c90237214101533c805";
   };
 
   buildInputs =
-    [ pkgconfig intltool babl gegl gtk glib gdk_pixbuf pango cairo
+    [ pkgconfig intltool babl gegl gtk2 glib gdk_pixbuf pango cairo
       freetype fontconfig lcms libpng libjpeg poppler libtiff webkit
       libmng librsvg libwmf zlib libzip ghostscript aalib jasper
       python pygtk libart_lgpl libexif gettext xorg.libXpm
       wrapPython
-    ];
+    ]
+    ++ stdenv.lib.optionals stdenv.isDarwin [ AppKit Cocoa gtk-mac-integration ];
 
   pythonPath = [ pygtk ];
 
@@ -35,7 +39,7 @@ stdenv.mkDerivation rec {
       --set GDK_PIXBUF_MODULE_FILE "$GDK_PIXBUF_MODULE_FILE"
   '';
 
-  passthru = { inherit gtk; }; # probably its a good idea to use the same gtk in plugins ?
+  passthru = { gtk = gtk2; }; # probably its a good idea to use the same gtk in plugins ?
 
   #configureFlags = [ "--disable-print" ];
 
@@ -49,6 +53,6 @@ stdenv.mkDerivation rec {
     description = "The GNU Image Manipulation Program";
     homepage = http://www.gimp.org/;
     license = stdenv.lib.licenses.gpl3Plus;
-    platforms = stdenv.lib.platforms.linux;
+    platforms = stdenv.lib.platforms.unix;
   };
 }

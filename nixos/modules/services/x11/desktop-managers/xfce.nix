@@ -42,6 +42,12 @@ in
           Shell commands executed just before XFCE is started.
         '';
       };
+
+      enableXfwm = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Enable the XFWM (default) window manager.";
+      };
     };
 
   };
@@ -70,7 +76,7 @@ in
     services.xserver.updateDbusEnvironment = true;
 
     environment.systemPackages =
-      [ pkgs.gtk.out # To get GTK+'s themes and gtk-update-icon-cache
+      [ pkgs.gtk2.out # To get GTK+'s themes and gtk-update-icon-cache
         pkgs.hicolor_icon_theme
         pkgs.tango-icon-theme
         pkgs.shared_mime_info
@@ -88,7 +94,6 @@ in
        (if pcfg.enable then pkgs.xfce.xfce4volumed_pulse else pkgs.xfce.xfce4volumed_gst)
         pkgs.xfce.xfce4-screenshooter
         pkgs.xfce.xfconf
-        pkgs.xfce.xfwm4
         # This supplies some "abstract" icons such as
         # "utilities-terminal" and "accessories-text-editor".
         pkgs.gnome3.defaultIconTheme
@@ -100,6 +105,7 @@ in
         pkgs.xfce.xfce4_appfinder
         pkgs.xfce.tumbler       # found via dbus
       ]
+      ++ optional cfg.enableXfwm pkgs.xfce.xfwm4
       ++ optional config.powerManagement.enable pkgs.xfce.xfce4_power_manager
       ++ optional config.networking.networkmanager.enable pkgs.networkmanagerapplet
       ++ optionals (!cfg.noDesktop)

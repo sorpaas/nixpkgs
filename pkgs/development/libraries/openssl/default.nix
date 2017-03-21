@@ -1,5 +1,6 @@
-{ stdenv, fetchurl, perl
-, withCryptodev ? false, cryptodevHeaders }:
+{ stdenv, fetchurl, buildPackages, perl
+, withCryptodev ? false, cryptodevHeaders
+, enableSSL2 ? false }:
 
 with stdenv.lib;
 
@@ -8,7 +9,7 @@ let
   opensslCrossSystem = stdenv.cross.openssl.system or
     (throw "openssl needs its platform name cross building");
 
-  common = args@{ version, sha256, patches ? [] }: stdenv.mkDerivation rec {
+  common = args@{ version, sha256, patches ? [], configureFlags ? [], makeDepend ? false }: stdenv.mkDerivation rec {
     name = "openssl-${version}";
 
     src = fetchurl {
@@ -24,8 +25,8 @@ let
            (versionOlder version "1.0.2" && (stdenv.isDarwin || (stdenv ? cross && stdenv.cross.libc == "libSystem")))
            ./darwin-arch.patch;
 
-  outputs = [ "bin" "dev" "out" "man" ];
-  setOutputFlags = false;
+    outputs = [ "bin" "dev" "out" "man" ];
+    setOutputFlags = false;
 
     nativeBuildInputs = [ perl ];
     buildInputs = stdenv.lib.optional withCryptodev cryptodevHeaders;
@@ -44,9 +45,12 @@ let
     ] ++ stdenv.lib.optionals withCryptodev [
       "-DHAVE_CRYPTODEV"
       "-DUSE_CRYPTODEV_DIGESTS"
-    ];
+    ] ++ stdenv.lib.optional enableSSL2 "enable-ssl2"
+    ++ args.configureFlags or [];
 
-  makeFlags = [ "MANDIR=$(man)/share/man" ];
+    postConfigure = if makeDepend then "make depend" else null;
+
+    makeFlags = [ "MANDIR=$(man)/share/man" ];
 
     # Parallel building is broken in OpenSSL.
     enableParallelBuilding = false;
@@ -72,7 +76,7 @@ let
 
     postFixup = ''
       # Check to make sure the main output doesn't depend on perl
-      if grep -r '${perl}' $out; then
+      if grep -r '${buildPackages.perl}' $out; then
         echo "Found an erroneous dependency on perl ^^^" >&2
         exit 1
       fi
@@ -113,6 +117,14 @@ in {
   openssl_1_1_0 = common {
     version = "1.1.0e";
     sha256 = "0k47sdd9gs6yxfv6ldlgpld2lyzrkcv9kz4cf88ck04xjwc8dgjp";
+  };
+
+  openssl_1_0_2-steam = common {
+    version = "1.0.2k";
+    sha256 = "1h6qi35w6hv6rd73p4cdgdzg732pdrfgpp37cgwz1v9a3z37ffbb";
+    configureFlags = [ "no-engine" ];
+    makeDepend = true;
+    patches = [ ./openssl-fix-cpuid_setup.patch ];
   };
 
 }

@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, patchelf, perl, ncurses, expat, python26, python27, zlib
+{ lib, stdenv, fetchurl, patchelf, perl, ncurses, expat, python27, zlib
 , xorg, gtk2, glib, fontconfig, freetype, unixODBC, alsaLib, glibc
 }:
 
@@ -85,13 +85,6 @@ let
 
 in {
 
-  cudatoolkit5 = common {
-    version = "5.5.22";
-    url = http://developer.download.nvidia.com/compute/cuda/5_5/rel/installers/cuda_5.5.22_linux_64.run;
-    sha256 = "b997e1dbe95704e0e806e0cedc5fd370a385351fef565c7bae0917baf3a29aa4";
-    python = python26;
-  };
-
   cudatoolkit6 = common {
     version = "6.0.37";
     url = http://developer.download.nvidia.com/compute/cuda/6_0/rel/installers/cuda_6.0.37_linux_64.run;
@@ -114,6 +107,12 @@ in {
     version = "7.5.18";
     url = http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run;
     sha256 = "1v2ylzp34ijyhcxyh5p6i0cwawwbbdhni2l5l4qm21s1cx9ish88";
+  };
+
+  cudatoolkit8 = common {
+    version = "8.0.44";
+    url = https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run;
+    sha256 = "1w5xmjf40kkis42dqs8dva4xjq7wr5y6vi1m0xlhs6i6cyw4mp34";
   };
 
 }

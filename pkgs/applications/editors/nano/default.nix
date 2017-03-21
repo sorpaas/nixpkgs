@@ -1,4 +1,4 @@
-{ stdenv, fetchurl
+{ stdenv, fetchurl, fetchFromGitHub
 , ncurses
 , texinfo
 , gettext ? null
@@ -10,40 +10,50 @@ assert enableNls -> (gettext != null);
 
 with stdenv.lib;
 
-stdenv.mkDerivation rec {
-  name = "nano-${version}";
-  version = "2.6.3";
-  src = fetchurl {
-    url = "https://nano-editor.org/dist/v2.6/${name}.tar.gz";
-    sha256 = "00ym3zws1vdds726drgr5wj14mjn18d96ghn6vjci0915zhm8h2g";
+let
+  nixSyntaxHighlight = fetchFromGitHub {
+    owner = "seitz";
+    repo = "nanonix";
+    rev = "17e0de65e1cbba3d6baa82deaefa853b41f5c161";
+    sha256 = "1g51h65i31andfs2fbp1v3vih9405iknqn11fzywjxji00kjqv5s";
   };
+
+in stdenv.mkDerivation rec {
+  name = "nano-${version}";
+  version = "2.7.5";
+  
+  src = fetchurl {
+    url = "mirror://gnu/nano/${name}.tar.xz";
+    sha256 = "1r37gqx7hppqbgsbclchiis8wzzpb9srm3q3dlvlii2gpkk28kd6";
+  };
+
   nativeBuildInputs = [ texinfo ] ++ optional enableNls gettext;
   buildInputs = [ ncurses ];
+  
   outputs = [ "out" "info" ];
+  
   configureFlags = ''
     --sysconfdir=/etc
     ${optionalString (!enableNls) "--disable-nls"}
     ${optionalString enableTiny "--enable-tiny"}
   '';
 
-  patchFlags = [ "-p0" ];
-
-  patches = optional stdenv.isDarwin
-    (fetchurl {
-      name = "darwin.patch";
-      url = "https://trac.macports.org/browser/trunk/dports/editors/nano/files/patch-src-winio.c.diff?rev=151356&format=txt";
-      sha256 = "184q33irz9px2svwr2qx70zvfby5zlwlhv4k607yzsy90fq2jpdd";
-    });
-
-  postPatch = stdenv.lib.optionalString stdenv.isDarwin ''
+  postPatch = optionalString stdenv.isDarwin ''
     substituteInPlace src/text.c --replace "__time_t" "time_t"
+  '';
+
+  postInstall = ''
+    cp ${nixSyntaxHighlight}/nix.nanorc $out/share/nano/
   '';
 
   meta = {
     homepage = http://www.nano-editor.org/;
     description = "A small, user-friendly console text editor";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ joachifm ];
+    maintainers = with maintainers; [
+      jgeerds
+      joachifm
+    ];
     platforms = platforms.all;
   };
 }

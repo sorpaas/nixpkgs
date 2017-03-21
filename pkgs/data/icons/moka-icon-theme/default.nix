@@ -3,13 +3,13 @@
 stdenv.mkDerivation rec {
   name = "${package-name}-${version}";
   package-name = "moka-icon-theme";
-  version = "2016-06-07";
+  version = "2017-02-13";
 
   src = fetchFromGitHub {
-    owner = "moka-project";
+    owner = "snwh";
     repo = package-name;
-    rev = "a03d14e30dbdf05e8ea904994b8081ad0824e155";
-    sha256 = "1j1cnrrg0gfr4vfzxlabrv8090fg4yni99g61s82vnyszkiy1rcm";
+    rev = "5ac530d2394574bdbd5360de46391d0dfc7aa2ab";
+    sha256 = "1zw1jm03706086gnplkkrdlrcyhgwm9kp4qax57wwc1s27bhc90n";
   };
 
   nativeBuildInputs = [ autoreconfHook ];

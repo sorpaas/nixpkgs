@@ -41,7 +41,7 @@ in
         strings.  The latter is concatenated, interspersed with colon
         characters.
       '';
-      type = types.attrsOf (types.loeOf types.str);
+      type = with types; attrsOf (either str (listOf str));
       apply = mapAttrs (n: v: if isList v then concatStringsSep ":" v else v);
     };
 
@@ -168,7 +168,7 @@ in
 
          ${cfg.extraInit}
 
-         # The setuid wrappers override other bin directories.
+         # The setuid/setcap wrappers override other bin directories.
          export PATH="${config.security.wrapperDir}:$PATH"
 
          # ~/bin if it exists overrides other bin directories.

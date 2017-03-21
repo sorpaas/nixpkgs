@@ -1,21 +1,20 @@
-{ stdenv, fetchgit
+{ stdenv, fetchFromGitHub
 , pkgconfig, cmake, libzip, epoxy, ffmpeg, imagemagick, SDL2
 , qtbase, qtmultimedia }:
 
 stdenv.mkDerivation rec {
-  name = "mgba-git-${version}";
-  version = "20160325";
+  name = "mgba-${version}";
+  version = "0.5.2";
 
-  src = fetchgit {
-    url = "https://github.com/mgba-emu/mgba.git";
-    rev = "be2641c77b4a438e0db487bc82b43bc27a26e0c2";
-    sha256 = "1wxywfbkgqvb0j9cyz4nwsfzhxrdjcmvz1k7rljmy4bz1pjcglj1";
+  src = fetchFromGitHub {
+    owner = "mgba-emu";
+    repo = "mgba";
+    rev = version;
+    sha256 = "1cpxiwzbywnjs3lrqa3bc9bj68plypx0br3lssd6p68c4wh01fyp";
   };
 
-  buildInputs = [
-    pkgconfig cmake libzip epoxy ffmpeg imagemagick SDL2
-    qtbase qtmultimedia
-  ];
+  nativeBuildInputs = [ pkgconfig cmake ];
+  buildInputs = [ libzip epoxy ffmpeg imagemagick SDL2 qtbase qtmultimedia ];
 
   meta = with stdenv.lib; {
     homepage = https://mgba.io;

@@ -52,14 +52,6 @@ let
     });
   '';
 
-  ipUpScript = writeScript "01nixos-ip-up" ''
-    #!/bin/sh
-    if test "$2" = "up"; then
-      ${config.systemd.package}/bin/systemctl start ip-up.target
-      ${config.systemd.package}/bin/systemctl start network-online.target
-    fi
-  '';
-
   ns = xs: writeText "nameservers" (
     concatStrings (map (s: "nameserver ${s}\n") xs)
   );
@@ -182,15 +174,12 @@ in {
 
     assertions = [{
       assertion = config.networking.wireless.enable == false;
-      message = "You can not use networking.networkmanager with services.networking.wireless";
+      message = "You can not use networking.networkmanager with networking.wireless";
     }];
 
     boot.kernelModules = [ "ppp_mppe" ]; # Needed for most (all?) PPTP VPN connections.
 
     environment.etc = with cfg.basePackages; [
-      { source = ipUpScript;
-        target = "NetworkManager/dispatcher.d/01nixos-ip-up";
-      }
       { source = configFile;
         target = "NetworkManager/NetworkManager.conf";
       }
@@ -208,6 +197,9 @@ in {
       }
       { source = "${networkmanager_l2tp}/etc/NetworkManager/VPN/nm-l2tp-service.name";
         target = "NetworkManager/VPN/nm-l2tp-service.name";
+      }
+      { source = "${networkmanager_strongswan}/etc/NetworkManager/VPN/nm-strongswan-service.name";
+        target = "NetworkManager/VPN/nm-strongswan-service.name";
       }
     ] ++ optional (cfg.appendNameservers == [] || cfg.insertNameservers == [])
            { source = overrideNameserversScript;
@@ -247,7 +239,8 @@ in {
     # Turn off NixOS' network management
     networking = {
       useDHCP = false;
-      wireless.enable = false;
+      # use mkDefault to trigger the assertion about the conflict above
+      wireless.enable = lib.mkDefault false;
     };
 
     powerManagement.resumeCommands = ''

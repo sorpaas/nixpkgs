@@ -1,6 +1,8 @@
-{ stdenv, fetchurl, makeWrapper, pkgconfig, MMA, libjack2, libsmf, python, pyGtkGlade, pygtksourceview }:
+{ stdenv, fetchurl, makeWrapper, pkgconfig, MMA, libjack2, libsmf, python2Packages }:
 
-stdenv.mkDerivation rec {
+let
+  inherit (python2Packages) pyGtkGlade pygtksourceview python;
+in stdenv.mkDerivation rec {
   version = "12.02.1";
   name = "linuxband-${version}";
 

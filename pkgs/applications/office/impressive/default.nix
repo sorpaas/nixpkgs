@@ -1,8 +1,8 @@
-{ fetchurl, stdenv, pythonPackages, makeWrapper, lib
+{ fetchurl, stdenv, python2Packages, makeWrapper, lib
 , xpdf, mesa, SDL, freeglut }:
 
 let
-  inherit (pythonPackages) python pyopengl pygame setuptools pillow;
+  inherit (python2Packages) python pyopengl pygame setuptools pillow;
   version = "0.11.1";
 in stdenv.mkDerivation {
     # This project was formerly known as KeyJNote.

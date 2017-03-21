@@ -19,6 +19,7 @@ let
       glibc # needed for getent
       shadow
       nettools # needed for hostname
+      utillinux # needed for mount and mountpoint
     ];
 
 in
@@ -160,7 +161,7 @@ in
         rmdir --ignore-fail-on-non-empty /usr/bin /usr
       '';
 
-    system.activationScripts.tmpfs =
+    system.activationScripts.specialfs =
       ''
         specialMount() {
           local device="$1"
@@ -168,7 +169,12 @@ in
           local options="$3"
           local fsType="$4"
 
-          ${pkgs.utillinux}/bin/mount -t "$fsType" -o "remount,$options" "$device" "$mountPoint"
+          if mountpoint -q "$mountPoint"; then
+            local options="remount,$options"
+          else
+            mkdir -m 0755 -p "$mountPoint"
+          fi
+          mount -t "$fsType" -o "$options" "$device" "$mountPoint"
         }
         source ${config.system.build.earlyMountScript}
       '';

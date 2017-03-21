@@ -102,8 +102,8 @@ in
       };
 
       permitRootLogin = mkOption {
-        default = "without-password";
-        type = types.enum ["yes" "without-password" "forced-commands-only" "no"];
+        default = "prohibit-password";
+        type = types.enum ["yes" "without-password" "prohibit-password" "forced-commands-only" "no"];
         description = ''
           Whether the root user can login using ssh.
         '';
@@ -129,7 +129,24 @@ in
       };
 
       listenAddresses = mkOption {
-        type = types.listOf types.optionSet;
+        type = with types; listOf (submodule {
+          options = {
+            addr = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = ''
+                Host, IPv4 or IPv6 address to listen to.
+              '';
+            };
+            port = mkOption {
+              type = types.nullOr types.int;
+              default = null;
+              description = ''
+                Port to listen to.
+              '';
+            };
+          };
+        });
         default = [];
         example = [ { addr = "192.168.3.1"; port = 22; } { addr = "0.0.0.0"; port = 64022; } ];
         description = ''
@@ -140,22 +157,6 @@ in
           NOTE: setting this option won't automatically enable given ports
           in firewall configuration.
         '';
-        options = {
-          addr = mkOption {
-            type = types.nullOr types.str;
-            default = null;
-            description = ''
-              Host, IPv4 or IPv6 address to listen to.
-            '';
-          };
-          port = mkOption {
-            type = types.nullOr types.int;
-            default = null;
-            description = ''
-              Port to listen to.
-            '';
-          };
-        };
       };
 
       passwordAuthentication = mkOption {
@@ -239,7 +240,7 @@ in
 
     systemd =
       let
-        service =
+        sshd-service =
           { description = "SSH Daemon";
 
             wantedBy = optional (!cfg.startWhenNeeded) "multi-user.target";
@@ -250,16 +251,8 @@ in
 
             environment.LD_LIBRARY_PATH = nssModulesPath;
 
-            preStart =
-              ''
-                mkdir -m 0755 -p /etc/ssh
-
-                ${flip concatMapStrings cfg.hostKeys (k: ''
-                  if ! [ -f "${k.path}" ]; then
-                      ssh-keygen -t "${k.type}" ${if k ? bits then "-b ${toString k.bits}" else ""} -f "${k.path}" -N ""
-                  fi
-                '')}
-              '';
+            wants = [ "sshd-keygen.service" ];
+            after = [ "sshd-keygen.service" ];
 
             serviceConfig =
               { ExecStart =
@@ -274,6 +267,26 @@ in
                 Type = "simple";
               });
           };
+
+        sshd-keygen-service =
+          { description = "SSH Host Key Generation";
+            path = [ cfgc.package ];
+            script =
+            ''
+              mkdir -m 0755 -p /etc/ssh
+              ${flip concatMapStrings cfg.hostKeys (k: ''
+                if ! [ -f "${k.path}" ]; then
+                  ssh-keygen -t "${k.type}" ${if k ? bits then "-b ${toString k.bits}" else ""} -f "${k.path}" -N ""
+                fi
+              '')}
+            '';
+
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = "yes";
+            };
+          };
+
       in
 
       if cfg.startWhenNeeded then {
@@ -285,11 +298,13 @@ in
             socketConfig.Accept = true;
           };
 
-        services."sshd@" = service;
+        services.sshd-keygen = sshd-keygen-service;
+        services."sshd@" = sshd-service;
 
       } else {
 
-        services.sshd = service;
+        services.sshd-keygen = sshd-keygen-service;
+        services.sshd = sshd-service;
 
       };
 

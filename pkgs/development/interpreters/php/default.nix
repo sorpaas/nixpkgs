@@ -2,16 +2,17 @@
 , mysql, libxml2, readline, zlib, curl, postgresql, gettext
 , openssl, pkgconfig, sqlite, config, libjpeg, libpng, freetype
 , libxslt, libmcrypt, bzip2, icu, openldap, cyrus_sasl, libmhash, freetds
-, uwimap, pam, gmp, apacheHttpd, libiconv }:
+, uwimap, pam, gmp, apacheHttpd, libiconv, systemd }:
 
 let
 
   generic =
     { version, sha256 }:
 
-    let php7 = lib.versionAtLeast version "7.0"; in
+    let php7 = lib.versionAtLeast version "7.0";
+        mysqlHeaders = mysql.lib.dev or mysql;
 
-    composableDerivation.composableDerivation {} (fixed: {
+    in composableDerivation.composableDerivation {} (fixed: {
 
       inherit version;
 
@@ -19,11 +20,13 @@ let
 
       enableParallelBuilding = true;
 
-      buildInputs = [ flex bison pkgconfig ];
+      buildInputs = [ flex bison pkgconfig ]
+        ++ lib.optional stdenv.isLinux systemd;
 
       configureFlags = [
         "EXTENSION_DIR=$(out)/lib/php/extensions"
-      ] ++ lib.optional stdenv.isDarwin "--with-iconv=${libiconv}";
+      ] ++ lib.optional stdenv.isDarwin "--with-iconv=${libiconv}"
+        ++ lib.optional stdenv.isLinux  "--with-fpm-systemd";
 
       flags = {
 
@@ -34,6 +37,10 @@ let
         apxs2 = {
           configureFlags = ["--with-apxs2=${apacheHttpd.dev}/bin/apxs"];
           buildInputs = [apacheHttpd];
+        };
+
+        embed = {
+          configureFlags = ["--enable-embed"];
         };
 
         # Extensions
@@ -108,12 +115,12 @@ let
 
         mysql = {
           configureFlags = ["--with-mysql"];
-          buildInputs = [ mysql.lib.dev ];
+          buildInputs = [ mysqlHeaders ];
         };
 
         mysqli = {
-          configureFlags = ["--with-mysqli=${mysql.lib.dev}/bin/mysql_config"];
-          buildInputs = [ mysql.lib.dev ];
+          configureFlags = ["--with-mysqli=${mysqlHeaders}/bin/mysql_config"];
+          buildInputs = [ mysqlHeaders ];
         };
 
         mysqli_embedded = {
@@ -123,8 +130,8 @@ let
         };
 
         pdo_mysql = {
-          configureFlags = ["--with-pdo-mysql=${mysql.lib.dev}"];
-          buildInputs = [ mysql.lib.dev ];
+          configureFlags = ["--with-pdo-mysql=${mysqlHeaders}"];
+          buildInputs = [ mysqlHeaders ];
         };
 
         bcmath = {
@@ -228,6 +235,7 @@ let
         pdo_mysqlSupport = config.php.pdo_mysql or true;
         libxml2Support = config.php.libxml2 or true;
         apxs2Support = config.php.apxs2 or (!stdenv.isDarwin);
+        embedSupport = config.php.embed or false;
         bcmathSupport = config.php.bcmath or true;
         socketsSupport = config.php.sockets or true;
         curlSupport = config.php.curl or true;
@@ -261,16 +269,18 @@ let
 
       configurePhase = ''
         # Don't record the configure flags since this causes unnecessary
-        # runtime dependencies.
+        # runtime dependencies - except for php-embed, as uwsgi needs them.
+        ${lib.optionalString (!(config.php.embed or false)) ''
         for i in main/build-defs.h.in scripts/php-config.in; do
           substituteInPlace $i \
             --replace '@CONFIGURE_COMMAND@' '(omitted)' \
             --replace '@CONFIGURE_OPTIONS@' "" \
             --replace '@PHP_LDFLAGS@' ""
         done
+        ''}
 
         [[ -z "$libxml2" ]] || export PATH=$PATH:$libxml2/bin
-        ./configure --with-config-file-scan-dir=/etc --with-config-file-path=$out/etc --prefix=$out $configureFlags
+        ./configure --with-config-file-scan-dir=/etc/php.d --with-config-file-path=$out/etc --prefix=$out $configureFlags
       '';
 
       postInstall = ''
@@ -307,5 +317,10 @@ in {
   php70 = generic {
     version = "7.0.16";
     sha256 = "1awp6l5bs7qkvak9hgn1qbwkn6303mprslmgcfjyq3ywfmszbic3";
+  };
+
+  php71 = generic {
+    version = "7.1.2";
+    sha256 = "013hlvzjmp7ilckqf3851xwmj37xzq6afsqm67i4whv64d723wp0";
   };
 }

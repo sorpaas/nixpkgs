@@ -15,10 +15,10 @@ rec {
      the original derivation attributes.
 
      `overrideDerivation' allows certain "ad-hoc" customisation
-     scenarios (e.g. in ~/.nixpkgs/config.nix).  For instance, if you
-     want to "patch" the derivation returned by a package function in
-     Nixpkgs to build another version than what the function itself
-     provides, you can do something like this:
+     scenarios (e.g. in ~/.config/nixpkgs/config.nix).  For instance,
+     if you want to "patch" the derivation returned by a package
+     function in Nixpkgs to build another version than what the
+     function itself provides, you can do something like this:
 
        mySed = overrideDerivation pkgs.gnused (oldAttrs: {
          name = "sed-4.2.2-pre";
@@ -56,16 +56,18 @@ rec {
       ff = f origArgs;
       overrideWith = newArgs: origArgs // (if builtins.isFunction newArgs then newArgs origArgs else newArgs);
     in
-      if builtins.isAttrs ff then (ff //
-        { override = newArgs: makeOverridable f (overrideWith newArgs);
-          overrideDerivation = fdrv:
-            makeOverridable (args: overrideDerivation (f args) fdrv) origArgs;
-        })
-      else if builtins.isFunction ff then
-        { override = newArgs: makeOverridable f (overrideWith newArgs);
-          __functor = self: ff;
-          overrideDerivation = throw "overrideDerivation not yet supported for functors";
-        }
+      if builtins.isAttrs ff then (ff // {
+        override = newArgs: makeOverridable f (overrideWith newArgs);
+        overrideDerivation = fdrv:
+          makeOverridable (args: overrideDerivation (f args) fdrv) origArgs;
+        ${if ff ? overrideAttrs then "overrideAttrs" else null} = fdrv:
+          makeOverridable (args: (f args).overrideAttrs fdrv) origArgs;
+      })
+      else if builtins.isFunction ff then {
+        override = newArgs: makeOverridable f (overrideWith newArgs);
+        __functor = self: ff;
+        overrideDerivation = throw "overrideDerivation not yet supported for functors";
+      }
       else ff;
 
 
@@ -104,11 +106,9 @@ rec {
     let
       f = if builtins.isFunction fn then fn else import fn;
       auto = builtins.intersectAttrs (builtins.functionArgs f) autoArgs;
-      finalArgs = auto // args;
-      pkgs = f finalArgs;
-      mkAttrOverridable = name: pkg: pkg // {
-        override = newArgs: mkAttrOverridable name (f (finalArgs // newArgs)).${name};
-      };
+      origArgs = auto // args;
+      pkgs = f origArgs;
+      mkAttrOverridable = name: pkg: makeOverridable (newArgs: (f newArgs).${name}) origArgs;
     in lib.mapAttrs mkAttrOverridable pkgs;
 
 
@@ -177,9 +177,10 @@ rec {
     let self = f self // {
           newScope = scope: newScope (self // scope);
           callPackage = self.newScope {};
-          override = g: makeScope newScope (self_:
-            let super = f self_;
-            in super // g super self_);
+          override = g:
+            makeScope newScope
+            (self_: let super = f self_; in super // g super self_);
+          packages = f;
         };
     in self;
 

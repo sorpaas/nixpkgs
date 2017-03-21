@@ -65,7 +65,7 @@ self: super: {
     mkDerivation = drv: super.mkDerivation (drv // { doCheck = false; });
     mtl = super.mtl_2_2_1;
     transformers = super.transformers_0_4_3_0;
-    haskeline = self.haskeline_0_7_2_1;
+    haskeline = self.haskeline_0_7_3_1;
     transformers-compat = disableCabalFlag super.transformers-compat "three";
   })) (drv: {});
 
@@ -142,6 +142,7 @@ self: super: {
   # Needs additional inputs on pre 7.10.x compilers.
   semigroups = addBuildDepends super.semigroups (with self; [nats tagged unordered-containers]);
   lens = addBuildDepends super.lens (with self; [doctest generic-deriving nats simple-reflect]);
+  distributive = addBuildDepend super.distributive self.semigroups;
 
   # Haddock doesn't cope with the new markup.
   bifunctors = dontHaddock super.bifunctors;

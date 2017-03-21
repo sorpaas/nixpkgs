@@ -2,25 +2,28 @@
   , freeglut, ghostscriptX, imagemagick, fftw 
   , boehmgc, mesa_glu, mesa_noglu, ncurses, readline, gsl, libsigsegv
   , python, zlib, perl, texLive, texinfo, xz
+, darwin
 }:
-
-assert stdenv.isLinux;
 
 let
   s = # Generated upstream information
   rec {
     baseName="asymptote";
-    version="2.38";
+    version="2.39";
     name="${baseName}-${version}";
-    hash="1dxwvq0xighqckkjkjva8s0igxfgy1j25z81pbwvlz6jzsrxpip9";
-    url="mirror://sourceforge/project/asymptote/2.38/asymptote-2.38.src.tgz";
-    sha256="1dxwvq0xighqckkjkjva8s0igxfgy1j25z81pbwvlz6jzsrxpip9";
+    hash="187q81yw06x4gv2spfn0hcs1064ym3a8l6mdgawymfhqd60yhrs3";
+    url="https://netcologne.dl.sourceforge.net/project/asymptote/2.39/asymptote-2.39.src.tgz";
+    sha256="187q81yw06x4gv2spfn0hcs1064ym3a8l6mdgawymfhqd60yhrs3";
   };
   buildInputs = [
-   freeglut ghostscriptX imagemagick fftw 
-   boehmgc mesa_glu mesa_noglu mesa_noglu.osmesa ncurses readline gsl libsigsegv
-   python zlib perl texLive texinfo xz
-  ];
+   ghostscriptX imagemagick fftw
+   boehmgc ncurses readline gsl libsigsegv
+   python zlib perl texLive texinfo xz ]
+   ++ stdenv.lib.optionals stdenv.isLinux
+     [ freeglut mesa_glu mesa_noglu mesa_noglu.osmesa ]
+   ++ stdenv.lib.optionals stdenv.isDarwin
+     (with darwin.apple_sdk.frameworks; [ OpenGL GLUT Cocoa ])
+   ;
 in
 stdenv.mkDerivation {
   inherit (s) name version;
@@ -51,11 +54,11 @@ stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  meta = {
+  meta = with stdenv.lib; {
     inherit (s) version;
     description =  "A tool for programming graphics intended to replace Metapost";
-    license = stdenv.lib.licenses.gpl3Plus;
-    maintainers = [stdenv.lib.maintainers.raskin stdenv.lib.maintainers.peti];
-    platforms = stdenv.lib.platforms.linux;
+    license = licenses.gpl3Plus;
+    maintainers = [ maintainers.raskin maintainers.peti ];
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }

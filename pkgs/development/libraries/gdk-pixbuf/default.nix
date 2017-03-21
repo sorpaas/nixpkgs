@@ -3,14 +3,14 @@
 
 let
   ver_maj = "2.36";
-  ver_min = "2";
+  ver_min = "5";
 in
 stdenv.mkDerivation rec {
   name = "gdk-pixbuf-${ver_maj}.${ver_min}";
 
   src = fetchurl {
     url = "mirror://gnome/sources/gdk-pixbuf/${ver_maj}/${name}.tar.xz";
-    sha256 = "3a082ad67d68b55970aed0b2034a06618167be98a42d5c70de736756b45d325d";
+    sha256 = "7ace06170291a1f21771552768bace072ecdea9bd4a02f7658939b9a314c40fc";
   };
 
   outputs = [ "out" "dev" "devdoc" ];

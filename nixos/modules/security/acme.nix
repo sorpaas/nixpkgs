@@ -129,11 +129,10 @@ in
 
       certs = mkOption {
         default = { };
-        type = types.loaOf types.optionSet;
+        type = with types; attrsOf (submodule certOpts);
         description = ''
           Attribute set of certificates to get signed and renewed.
         '';
-        options = [ certOpts ];
         example = {
           "example.com" = {
             webroot = "/var/www/challenges/";
@@ -285,6 +284,8 @@ in
             OnCalendar = cfg.renewInterval;
             Unit = "acme-${cert}.service";
             Persistent = "yes";
+            AccuracySec = "5m";
+            RandomizedDelaySec = "1h";
           };
         })
       );

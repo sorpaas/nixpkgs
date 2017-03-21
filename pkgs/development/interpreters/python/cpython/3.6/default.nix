@@ -1,68 +1,96 @@
-{ stdenv, fetchurl
+{ stdenv, fetchurl, fetchpatch
 , glibc
 , bzip2
-, db
+, expat
+, libffi
 , gdbm
-, libX11, xproto
 , lzma
 , ncurses
 , openssl
 , readline
 , sqlite
-, tcl, tk
+, tcl ? null, tk ? null, tix ? null, libX11 ? null, xproto ? null, x11Support ? false
 , zlib
 , callPackage
 , self
-, python36Packages
-
 , CF, configd
+# For the Python package set
+, pkgs, packageOverrides ? (self: super: {})
 }:
 
-assert readline != null -> ncurses != null;
-
+assert x11Support -> tcl != null
+                  && tk != null
+                  && xproto != null
+                  && libX11 != null;
 with stdenv.lib;
 
 let
   majorVersion = "3.6";
+  minorVersion = "0";
+  minorVersionSuffix = "";
   pythonVersion = majorVersion;
-  version = "${majorVersion}.0a3";
-  fullVersion = "${version}";
+  version = "${majorVersion}.${minorVersion}${minorVersionSuffix}";
+  libPrefix = "python${majorVersion}";
+  sitePackages = "lib/${libPrefix}/site-packages";
 
   buildInputs = filter (p: p != null) [
-    glibc
-    zlib
-    bzip2
-    lzma
-    gdbm
-    sqlite
-    db
-    readline
-    ncurses
-    openssl
-    tcl
-    tk
-    libX11
-    xproto
-  ] ++ optionals stdenv.isDarwin [ CF configd ];
-in
-stdenv.mkDerivation {
-  name = "python3-${fullVersion}";
+    zlib bzip2 expat lzma libffi gdbm sqlite readline ncurses openssl ]
+    ++ optionals x11Support [ tcl tk libX11 xproto ]
+    ++ optionals stdenv.isDarwin [ CF configd ];
+
+in stdenv.mkDerivation {
+  name = "python3-${version}";
   pythonVersion = majorVersion;
   inherit majorVersion version;
 
   inherit buildInputs;
 
   src = fetchurl {
-    url = "https://www.python.org/ftp/python/${majorVersion}.0/Python-${fullVersion}.tar.xz";
-    sha256 = "08c3598bwihibwca9lwxq923sjq9shvgv3wxv4vkga2n6hf63l1c";
+    url = "https://www.python.org/ftp/python/${majorVersion}.${minorVersion}/Python-${version}.tar.xz";
+    sha256 = "08inlbb2vb8lahw6wfq654lqk6l1x7ncpggp6a92vqw5yq2gkidh";
   };
 
   NIX_LDFLAGS = optionalString stdenv.isLinux "-lgcc_s";
+
+  # Determinism: The interpreter is patched to write null timestamps when compiling python files.
+  # This way python doesn't try to update them when we freeze timestamps in nix store.
+  DETERMINISTIC_BUILD=1;
+  # Determinism: We fix the hashes of str, bytes and datetime objects.
+  PYTHONHASHSEED=0;
 
   prePatch = optionalString stdenv.isDarwin ''
     substituteInPlace configure --replace '`/usr/bin/arch`' '"i386"'
     substituteInPlace configure --replace '-Wl,-stack_size,1000000' ' '
   '';
+
+  patches = [
+    (fetchpatch {
+      name = "glibc-2.25-failed-to-get-random-numbers.patch";
+      url = https://github.com/python/cpython/commit/ff558f5aba4.patch;
+      sha256 = "1k12gpn69np94cm942vaf40sv7gsxqf20rv1m3parzgi1gs4hqa3";
+    })
+  ];
+
+  postPatch = ''
+    # Determinism
+    substituteInPlace "Lib/py_compile.py" --replace "source_stats['mtime']" "(1 if 'DETERMINISTIC_BUILD' in os.environ else source_stats['mtime'])"
+    # Determinism. This is done unconditionally
+    substituteInPlace "Lib/importlib/_bootstrap_external.py" --replace "source_mtime = int(st['mtime'])" "source_mtime = 1"
+  '' + optionalString (x11Support && (tix != null)) ''
+    substituteInPlace "Lib/tkinter/tix.py" --replace "os.environ.get('TIX_LIBRARY')" "os.environ.get('TIX_LIBRARY') or '${tix}/lib'"
+  '';
+
+  CPPFLAGS="${concatStringsSep " " (map (p: "-I${getDev p}/include") buildInputs)}";
+  LDFLAGS="${concatStringsSep " " (map (p: "-L${getLib p}/lib") buildInputs)}";
+  LIBS="${optionalString (!stdenv.isDarwin) "-lcrypt"} ${optionalString (ncurses != null) "-lncurses"}";
+
+  configureFlags = [
+    "--enable-shared"
+    "--with-threads"
+    "--without-ensurepip"
+    "--with-system-expat"
+    "--with-system-ffi"
+  ];
 
   preConfigure = ''
     for i in /usr /sw /opt /pkg; do	# improve purity
@@ -72,14 +100,6 @@ stdenv.mkDerivation {
        export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -msse2"
        export MACOSX_DEPLOYMENT_TARGET=10.6
      ''}
-
-    substituteInPlace ./Lib/plat-generic/regen --replace "/usr/include" ${glibc.dev}/include
-
-    configureFlagsArray=( --enable-shared --with-threads
-                          CPPFLAGS="${concatStringsSep " " (map (p: "-I${getDev p}/include") buildInputs)}"
-                          LDFLAGS="${concatStringsSep " " (map (p: "-L${getLib p}/lib") buildInputs)}"
-                          LIBS="${optionalString (!stdenv.isDarwin) "-lcrypt"} ${optionalString (ncurses != null) "-lncurses"}"
-                        )
   '';
 
   setupHook = ./setup-hook.sh;
@@ -98,23 +118,41 @@ stdenv.mkDerivation {
 
     ln -s "$out/include/python${majorVersion}m" "$out/include/python${majorVersion}"
     paxmark E $out/bin/python${majorVersion}
+
+    # Python on Nix is not manylinux1 compatible. https://github.com/NixOS/nixpkgs/issues/18484
+    echo "manylinux1_compatible=False" >> $out/lib/${libPrefix}/_manylinux.py
+
+    # Determinism: Windows installers were not deterministic.
+    # We're also not interested in building Windows installers.
+    find "$out" -name 'wininst*.exe' | xargs -r rm -f
+
+    # Use Python3 as default python
+    ln -s "$out/bin/idle3" "$out/bin/idle"
+    ln -s "$out/bin/pip3" "$out/bin/pip"
+    ln -s "$out/bin/pydoc3" "$out/bin/pydoc"
+    ln -s "$out/bin/python3" "$out/bin/python"
+    ln -s "$out/bin/python3-config" "$out/bin/python-config"
+    ln -s "$out/lib/pkgconfig/python3.pc" "$out/lib/pkgconfig/python.pc"
+
+    # Determinism: rebuild all bytecode
+    # We exclude lib2to3 because that's Python 2 code which fails
+    # We rebuild three times, once for each optimization level
+    find $out -name "*.py" | $out/bin/python -m compileall -q -f -x "lib2to3" -i -
+    find $out -name "*.py" | $out/bin/python -O -m compileall -q -f -x "lib2to3" -i -
+    find $out -name "*.py" | $out/bin/python -OO -m compileall -q -f -x "lib2to3" -i -
   '';
 
-  passthru = rec {
-    zlibSupport = zlib != null;
-    sqliteSupport = sqlite != null;
-    dbSupport = db != null;
-    readlineSupport = readline != null;
-    opensslSupport = openssl != null;
-    tkSupport = (tk != null) && (tcl != null) && (libX11 != null) && (xproto != null);
-    libPrefix = "python${majorVersion}";
-    executable = "python${majorVersion}m";
+  passthru = let
+    pythonPackages = callPackage ../../../../../top-level/python-packages.nix {python=self; overrides=packageOverrides;};
+  in rec {
+    inherit libPrefix sitePackages x11Support;
+    executable = "${libPrefix}m";
     buildEnv = callPackage ../../wrapper.nix { python = self; };
-    withPackages = import ../../with-packages.nix { inherit buildEnv; pythonPackages = python36Packages; };
+    withPackages = import ../../with-packages.nix { inherit buildEnv pythonPackages;};
+    pkgs = pythonPackages;
     isPy3 = true;
     isPy35 = true;
     is_py3k = true;  # deprecated
-    sitePackages = "lib/${libPrefix}/site-packages";
     interpreter = "${self}/bin/${executable}";
   };
 

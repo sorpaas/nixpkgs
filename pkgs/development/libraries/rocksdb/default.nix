@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub
+{ stdenv, fetchFromGitHub, fixDarwinDylibNames
 
 # Optional Arguments
 , snappy ? null, google-gflags ? null, zlib ? null, bzip2 ? null, lz4 ? null
@@ -13,16 +13,16 @@ let
 in
 stdenv.mkDerivation rec {
   name = "rocksdb-${version}";
-  version = "4.13";
+  version = "5.1.2";
 
   src = fetchFromGitHub {
     owner = "facebook";
     repo = "rocksdb";
     rev = "v${version}";
-    sha256 = "1bxyykj13mw48yk108bkmxlfrp6bd95f27bysayax4lqxkgx0zzw";
+    sha256 = "1smahz67gcd86nkdqaml78lci89dza131mlj5472r4sxjdxsx277";
   };
 
-  buildInputs = [ snappy google-gflags zlib bzip2 lz4 malloc ];
+  buildInputs = [ snappy google-gflags zlib bzip2 lz4 malloc fixDarwinDylibNames ];
 
   postPatch = ''
     # Hack to fix typos
@@ -36,14 +36,16 @@ stdenv.mkDerivation rec {
   JEMALLOC_LIB = stdenv.lib.optionalString (malloc == jemalloc) "-ljemalloc";
 
   buildFlags = [
+    "DEBUG_LEVEL=0"
     "shared_lib"
     "static_lib"
   ];
 
   installFlags = [
+    "INSTALL_PATH=\${out}"
+    "DEBUG_LEVEL=0"
     "install-shared"
     "install-static"
-    "INSTALL_PATH=\${out}"
   ];
 
   postInstall = ''

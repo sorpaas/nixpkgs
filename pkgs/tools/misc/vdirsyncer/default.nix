@@ -1,14 +1,17 @@
-{ stdenv, fetchurl, pythonPackages, glibcLocales }:
+{ stdenv, fetchurl, python3Packages, glibcLocales }:
 
 # Packaging documentation at:
 # https://github.com/untitaker/vdirsyncer/blob/master/docs/packaging.rst
+let
+  pythonPackages = python3Packages;
+in
 pythonPackages.buildPythonApplication rec {
-  version = "0.11.3";
+  version = "0.14.1";
   name = "vdirsyncer-${version}";
 
   src = fetchurl {
     url = "mirror://pypi/v/vdirsyncer/${name}.tar.gz";
-    sha256 = "10majl58vdpxgbddjqgwblvl7akvvr4c2c8iaxnf3kgyh01jq6k9";
+    sha256 = "044f01fjd8dpz4y9dm3qcc1a8cihcxxbr1sz6y6fkvglpb6k85y5";
   };
 
   propagatedBuildInputs = with pythonPackages; [

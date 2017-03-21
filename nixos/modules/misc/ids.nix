@@ -58,14 +58,13 @@
       #utmp = 29; # unused
       ddclient = 30;
       davfs2 = 31;
-      privoxy = 32;
       #disnix = 33; # unused
       osgi = 34;
       tor = 35;
       cups = 36;
       foldingathome = 37;
       sabnzbd = 38;
-      kdm = 39;
+      #kdm = 39; # dropped in 17.03
       ghostone = 40;
       git = 41;
       fourstore = 42;
@@ -74,7 +73,6 @@
       rtkit = 45;
       dovecot2 = 46;
       dovenull2 = 47;
-      unbound = 48;
       prayer = 49;
       mpd = 50;
       clamav = 51;
@@ -85,7 +83,7 @@
       spamd = 56;
       #networkmanager = 57; # unused
       nslcd = 58;
-      #scanner = 59; # unused
+      scanner = 59;
       nginx = 60;
       chrony = 61;
       #systemd-journal = 62; # unused
@@ -140,7 +138,7 @@
       ngircd = 112;
       btsync = 113;
       minecraft = 114;
-      monetdb = 115;
+      #monetdb = 115; # unused (not packaged), removed 2016-09-19
       rippled = 116;
       murmur = 117;
       foundationdb = 118;
@@ -208,12 +206,11 @@
       ripple-data-api = 186;
       mediatomb = 187;
       rdnssd = 188;
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
       asterisk = 192;
       plex = 193;
-      bird = 195;
       grafana = 196;
       skydns = 197;
       ripple-rest = 198;
@@ -273,8 +270,25 @@
       gocd-server = 252;
       terraria = 253;
       mattermost = 254;
+      prometheus = 255;
+      telegraf = 256;
+      gitlab-runner = 257;
+      postgrey = 258;
       hound = 259;
+      leaps = 260;
+      ipfs  = 261;
+      stanchion = 262;
+      riak-cs = 263;
+      infinoted = 264;
+      keystone = 265;
+      glance = 266;
+      couchpotato = 267;
+      gogs = 268;
+      pdns-recursor = 269;
       kresd = 270;
+      rpc = 271;
+      geoip = 272;
+      fcron = 273;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -315,14 +329,13 @@
       utmp = 29;
       #ddclient = 30; # unused
       davfs2 = 31;
-      privoxy = 32;
       disnix = 33;
       osgi = 34;
       tor = 35;
       #cups = 36; # unused
       #foldingathome = 37; # unused
       #sabnzd = 38; # unused
-      #kdm = 39; # unused
+      #kdm = 39; # unused, even before 17.03
       ghostone = 40;
       git = 41;
       fourstore = 42;
@@ -331,7 +344,6 @@
       #rtkit = 45; # unused
       dovecot2 = 46;
       #dovenull = 47; # unused
-      #unbound = 48; # unused
       prayer = 49;
       mpd = 50;
       clamav = 51;
@@ -395,7 +407,7 @@
       #ngircd = 112; # unused
       btsync = 113;
       #minecraft = 114; # unused
-      monetdb = 115;
+      #monetdb = 115; # unused (not packaged), removed 2016-09-19
       #ripped = 116; # unused
       #murmur = 117; # unused
       foundationdb = 118;
@@ -460,13 +472,12 @@
       #ripple-data-api = 186; #unused
       mediatomb = 187;
       #rdnssd = 188; # unused
-      ihaskell = 189;
+      # ihaskell = 189; # unused
       i2p = 190;
       lambdabot = 191;
-      #asterisk = 192; # unused
+      asterisk = 192;
       plex = 193;
       sabnzbd = 194;
-      bird = 195;
       #grafana = 196; #unused
       #skydns = 197; #unused
       #ripple-rest = 198; #unused
@@ -518,8 +529,24 @@
       gocd-server = 252;
       terraria = 253;
       mattermost = 254;
+      prometheus = 255;
+      #telegraf = 256; # unused
+      gitlab-runner = 257;
+      postgrey = 258;
       hound = 259;
+      leaps = 260;
+      ipfs = 261;
+      stanchion = 262;
+      riak-cs = 263;
+      infinoted = 264;
+      keystone = 265;
+      glance = 266;
+      couchpotato = 267;
+      gogs = 268;
       kresd = 270;
+      #rpc = 271; # unused
+      #geoip = 272; # unused
+      fcron = 273;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

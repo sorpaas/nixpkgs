@@ -19,14 +19,14 @@ let lispPackages = rec {
 
   clx = buildLispPackage rec {
     baseName = "clx";
-    version = "git-20150117";
+    version = "git-20170201";
     description = "An implementation of the X Window System protocol in Lisp";
     deps = [];
     # Source type: git
     src = pkgs.fetchgit {
       url = ''https://github.com/sharplispers/clx'';
-      sha256 = "ada6cf450c22d1ed297e5575f832bee8e4b61d602ffa9a145ae2fab7cd80f3b6";
-      rev = ''0a3bea0fab66058e9394973e23954c43083d96e2'';
+      sha256 = "08jw4d2sx49kq1xw44s3fvyq94wm1if4v1jbf1137fvlkzw1pf5m";
+      rev = ''c6d2446a10abd9eade2c52342b9662c9dd8579dc'';
       name = "clx-git-checkout-${version}";
     };
   };
@@ -344,14 +344,14 @@ let lispPackages = rec {
 
   command-line-arguments = buildLispPackage rec {
     baseName = "command-line-arguments";
-    version = "git-20141113";
+    version = "git-20151120";
     description = "Small library to deal with command-line arguments";
     deps = [];
     # Source type: git
     src = pkgs.fetchgit {
       url = ''http://common-lisp.net/project/qitab/git/command-line-arguments.git'';
-      sha256 = "1jgx8k706wz2qjdnqnralvnhwlzxd0nx22r6rncgs2kw7p4wll9d";
-      rev = ''121f303bbef9c9cdf37a7a12d8adb1ad4be5a6ae'';
+      sha256 = "0qx33j0bq8dshiyyv8rjwd0zvhqhqx5gby6xrghfy8ylcwf11r5j";
+      rev = ''003bdbc05e2816e43293530f58efb529e9e89a20'';
     };
   };
 

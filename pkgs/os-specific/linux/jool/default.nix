@@ -1,5 +1,7 @@
 { stdenv, fetchzip, kernel }:
 
+assert stdenv.lib.versionOlder kernel.version "4.10";
+
 let
   sourceAttrs = (import ./source.nix) { inherit fetchzip; };
 in
@@ -28,7 +30,5 @@ stdenv.mkDerivation {
     description = "Fairly compliant SIIT and Stateful NAT64 for Linux - kernel modules";
     platforms = platforms.linux;
     maintainers = with maintainers; [ fpletz ];
-    # kernel version 4.3 is the most recent supported version
-    broken = builtins.compareVersions kernel.version "4.3" == 1;
   };
 }

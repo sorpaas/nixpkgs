@@ -4,7 +4,7 @@
 , which, alsaLib, curl, libvpx, gawk, nettools, dbus
 , xorriso, makeself, perl, pkgconfig
 , javaBindings ? false, jdk ? null
-, pythonBindings ? false, python ? null
+, pythonBindings ? false, python2 ? null
 , enableExtensionPack ? false, requireFile ? null, patchelf ? null, fakeroot ? null
 , pulseSupport ? false, libpulseaudio ? null
 , enableHardening ? false
@@ -15,12 +15,13 @@
 with stdenv.lib;
 
 let
+  python = python2;
   buildType = "release";
 
-  extpack = "baddb7cc49224ecc1147f82d77fce2685ac39941ac9b0aac83c270dd6570ea85";
-  extpackRev = 112924;
-  main = "8267bb026717c6e55237eb798210767d9c703cfcdf01224d9bc26f7dac9f228a";
-  version = "5.1.14";
+  extpack = "996f783996a597d3936fc5f1ccf56edd31ae1f8fb4d527009647d9a2c8c853cd";
+  extpackRev = "114002";
+  main = "7ed0959bbbd02826b86b3d5dc8348931ddfab267c31f8ed36ee53c12f5522cd9";
+  version = "5.1.18";
 
   # See https://github.com/NixOS/nixpkgs/issues/672 for details
   extensionPack = requireFile rec {
@@ -51,10 +52,10 @@ in stdenv.mkDerivation {
 
   buildInputs =
     [ iasl dev86 libxslt libxml2 xproto libX11 libXext libXcursor libIDL
-      libcap glib lvm2 python alsaLib curl libvpx pam xorriso makeself perl
-      pkgconfig which libXmu libpng patchelfUnstable ]
+      libcap glib lvm2 alsaLib curl libvpx pam xorriso makeself perl
+      pkgconfig which libXmu libpng patchelfUnstable python ]
     ++ optional javaBindings jdk
-    ++ optional pythonBindings python
+    ++ optional pythonBindings python # Python is needed even when not building bindings
     ++ optional pulseSupport libpulseaudio
     ++ optionals (headless) [ libXrandr ]
     ++ optionals (!headless) [ qt5.qtbase qt5.qtx11extras libXinerama SDL ];
@@ -65,6 +66,7 @@ in stdenv.mkDerivation {
     set -x
     sed -e 's@MKISOFS --version@MKISOFS -version@' \
         -e 's@PYTHONDIR=.*@PYTHONDIR=${if pythonBindings then python else ""}@' \
+        -e 's@CXX_FLAGS="\(.*\)"@CXX_FLAGS="-std=c++11 \1"@' \
         ${optionalString (!headless) ''
         -e 's@TOOLQT5BIN=.*@TOOLQT5BIN="${getDev qt5.qtbase}/bin"@' \
         ''} -i configure

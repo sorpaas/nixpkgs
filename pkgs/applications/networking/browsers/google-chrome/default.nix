@@ -4,7 +4,10 @@
 , glib, fontconfig, freetype, pango, cairo, libX11, libXi, atk, gconf, nss, nspr
 , libXcursor, libXext, libXfixes, libXrender, libXScrnSaver, libXcomposite, libxcb
 , alsaLib, libXdamage, libXtst, libXrandr, expat, cups
-, dbus_libs, gtk, gdk_pixbuf, gcc
+, dbus_libs, gtk2, gdk_pixbuf, gcc
+
+# command line arguments which are always set e.g "--disable-gpu"
+, commandLineArgs ? ""
 
 # Will crash without.
 , systemd
@@ -44,17 +47,20 @@ let
     glib fontconfig freetype pango cairo libX11 libXi atk gconf nss nspr
     libXcursor libXext libXfixes libXrender libXScrnSaver libXcomposite libxcb
     alsaLib libXdamage libXtst libXrandr expat cups
-    dbus_libs gtk gdk_pixbuf gcc
+    dbus_libs gtk2 gdk_pixbuf gcc
     systemd
     libexif
     liberation_ttf curl utillinux xdg_utils wget
     flac harfbuzz icu libpng opusWithCustomModes snappy speechd
     bzip2 libcap
   ] ++ optional pulseSupport libpulseaudio;
+
+  suffix = if channel != "stable" then "-" + channel else "";
+
 in stdenv.mkDerivation rec {
   inherit version;
 
-  name = "google-chrome-${version}";
+  name = "google-chrome${suffix}-${version}";
 
   src = binary;
 
@@ -103,7 +109,7 @@ in stdenv.mkDerivation rec {
     #!${bash}/bin/sh
     export LD_LIBRARY_PATH=$rpath\''${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
     export PATH=$binpath\''${PATH:+:\$PATH}
-    $out/share/google/$appname/google-$appname "\$@"
+    $out/share/google/$appname/google-$appname ${commandLineArgs} "\$@"
     EOF
     chmod +x $exe
 

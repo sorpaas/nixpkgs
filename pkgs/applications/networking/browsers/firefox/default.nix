@@ -1,10 +1,11 @@
-{ lib, stdenv, fetchurl, pkgconfig, gtk, gtk3, pango, perl, python, zip, libIDL
+{ lib, stdenv, fetchurl, pkgconfig, gtk2, gtk3, pango, perl, python, zip, libIDL
 , libjpeg, zlib, dbus, dbus_glib, bzip2, xorg
 , freetype, fontconfig, file, alsaLib, nspr, nss, libnotify
-, yasm, mesa, sqlite, unzip, makeWrapper, pysqlite
+, yasm, mesa, sqlite, unzip, makeWrapper
 , hunspell, libevent, libstartup_notification, libvpx
-, cairo, gstreamer, gst_plugins_base, icu, libpng, jemalloc, libpulseaudio
+, cairo, gstreamer, gst-plugins-base, icu, libpng, jemalloc, libpulseaudio
 , autoconf213, which
+, writeScript, xidel, common-updater-scripts, coreutils, gnused, gnugrep, curl
 , enableGTK3 ? false
 , debugBuild ? false
 , # If you want the resulting program to call itself "Firefox" instead
@@ -19,7 +20,7 @@ assert stdenv.cc ? libc && stdenv.cc.libc != null;
 
 let
 
-common = { pname, version, sha512 }: stdenv.mkDerivation rec {
+common = { pname, version, sha512, updateScript }: stdenv.mkDerivation rec {
   name = "${pname}-unwrapped-${version}";
 
   src = fetchurl {
@@ -29,21 +30,25 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
     inherit sha512;
   };
 
+  # this patch should no longer be needed in 53
+  # from https://bugzilla.mozilla.org/show_bug.cgi?id=1013882
+  patches = lib.optional debugBuild ./fix-debug.patch;
+
   buildInputs =
-    [ pkgconfig gtk perl zip libIDL libjpeg zlib bzip2
+    [ pkgconfig gtk2 perl zip libIDL libjpeg zlib bzip2
       python dbus dbus_glib pango freetype fontconfig xorg.libXi
       xorg.libX11 xorg.libXrender xorg.libXft xorg.libXt file
       alsaLib nspr nss libnotify xorg.pixman yasm mesa
-      xorg.libXScrnSaver xorg.scrnsaverproto pysqlite
+      xorg.libXScrnSaver xorg.scrnsaverproto
       xorg.libXext xorg.xextproto sqlite unzip makeWrapper
       hunspell libevent libstartup_notification libvpx /* cairo */
       icu libpng jemalloc
       libpulseaudio # only headers are needed
     ]
     ++ lib.optional enableGTK3 gtk3
-    ++ lib.optionals (!passthru.ffmpegSupport) [ gstreamer gst_plugins_base ];
+    ++ lib.optionals (!passthru.ffmpegSupport) [ gstreamer gst-plugins-base ];
 
-  nativeBuildInputs = [autoconf213 which];
+  nativeBuildInputs = [ autoconf213 which gnused ];
 
   configureFlags =
     [ "--enable-application=browser"
@@ -56,6 +61,7 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
       "--with-system-libvpx"
       "--with-system-png" # needs APNG support
       "--with-system-icu"
+      "--enable-alsa"
       "--enable-system-ffi"
       "--enable-system-hunspell"
       "--enable-system-pixman"
@@ -135,7 +141,8 @@ common = { pname, version, sha512 }: stdenv.mkDerivation rec {
   };
 
   passthru = {
-    inherit gtk nspr version;
+    inherit nspr version updateScript;
+    gtk = gtk2;
     isFirefox3Like = true;
     browserName = "firefox";
     ffmpegSupport = lib.versionAtLeast version "46.0";
@@ -146,14 +153,23 @@ in {
 
   firefox-unwrapped = common {
     pname = "firefox";
-    version = "51.0.1";
-    sha512 = "556e31b717c0640ef5e181e00b9d2a6ea0ace7c16ae04333d0f2e9e120d0ab9efe82a4ca314ef43594c080523edf37953e65dbf694c7428be0a024f3719d8312";
+    version = "52.0.1";
+    sha512 = "535e2cc0ee645d4ebe9f1d2d1f4fbb16ff5d1745ce493add6b2e323ca3b0907c3054705c5a15eaadb314d5d6474ba1825554fd1ff0780ab7f76fd3f9672a6974";
+    updateScript = import ./update.nix {
+      attrPath = "firefox-unwrapped";
+      inherit writeScript lib common-updater-scripts xidel coreutils gnused gnugrep curl;
+    };
   };
 
   firefox-esr-unwrapped = common {
     pname = "firefox-esr";
-    version = "45.7.0esr";
-    sha512 = "6424101b6958191ce654d0619950dfbf98d4aa6bdd979306a2df8d6d30d3fecf1ab44638061a2b4fb1af85fe972f5ff49400e8eeda30cdcb9087c4b110b97a7d";
+    version = "52.0.1esr";
+    sha512 = "c1f0aea279254e7788f62bba7892840edd2b667f385a649d374c9e783b93ec7faf9e5ebfccd04cd94f46da37aeb6bd7785d17faca2ad441a0b6e8587917faab2";
+    updateScript = import ./update.nix {
+      attrPath = "firefox-esr-unwrapped";
+      versionSuffix = "esr";
+      inherit writeScript lib common-updater-scripts xidel coreutils gnused gnugrep curl;
+    };
   };
 
 }

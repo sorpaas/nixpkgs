@@ -3,10 +3,10 @@
 , libXfixes, libXrandr, libSM, freetype, fontconfig, zlib, libjpeg, libpng
 , libmng, which, mesaSupported, mesa, mesa_glu, openssl, dbus, cups, pkgconfig
 , libtiff, glib, icu, mysql, postgresql, sqlite, perl, coreutils, libXi
-, buildMultimedia ? stdenv.isLinux, alsaLib, gstreamer, gst_plugins_base
-, buildWebkit ? stdenv.isLinux
+, buildMultimedia ? stdenv.isLinux, alsaLib, gstreamer, gst-plugins-base
+, buildWebkit ? (stdenv.isLinux || stdenv.isDarwin)
 , flashplayerFix ? false, gdk_pixbuf
-, gtkStyle ? false, libgnomeui, gtk, GConf, gnome_vfs
+, gtkStyle ? false, libgnomeui, gtk2, GConf, gnome_vfs
 , developerBuild ? false
 , docs ? false
 , examples ? false
@@ -71,21 +71,28 @@ stdenv.mkDerivation rec {
         src = ./dlopen-gtkstyle.diff;
         # substituteAll ignores env vars starting with capital letter
         gconf = GConf.out;
-        gtk = gtk.out;
+        gtk = gtk2.out;
         libgnomeui = libgnomeui.out;
         gnome_vfs = gnome_vfs.out;
       })
     ++ stdenv.lib.optional flashplayerFix (substituteAll {
         src = ./dlopen-webkit-nsplugin.diff;
-        gtk = gtk.out;
+        gtk = gtk2.out;
         gdk_pixbuf = gdk_pixbuf.out;
       })
-    ++ [(fetchpatch {
+    ++ [
+      (fetchpatch {
         name = "fix-medium-font.patch";
         url = "http://anonscm.debian.org/cgit/pkg-kde/qt/qt4-x11.git/plain/debian/patches/"
           + "kubuntu_39_fix_medium_font.diff?id=21b342d71c19e6d68b649947f913410fe6129ea4";
         sha256 = "0bli44chn03c2y70w1n8l7ss4ya0b40jqqav8yxrykayi01yf95j";
-      })];
+      })
+      (fetchpatch {
+        name = "qt4-gcc6.patch";
+        url = "https://git.archlinux.org/svntogit/packages.git/plain/trunk/qt4-gcc6.patch?h=packages/qt4&id=ca773a144f5abb244ac4f2749eeee9333cac001f";
+        sha256 = "07lrva7bjh6i40p7b3ml26a2jlznri8bh7y7iyx5zmvb1gfxmj34";
+      })
+    ];
 
   preConfigure = ''
     export LD_LIBRARY_PATH="`pwd`/lib:$LD_LIBRARY_PATH"
@@ -131,22 +138,24 @@ stdenv.mkDerivation rec {
         # Qt doesn't directly need GLU (just GL), but many apps use, it's small and doesn't remain a runtime-dep if not used
     ++ optional mesaSupported mesa_glu
     ++ optional ((buildWebkit || buildMultimedia) && stdenv.isLinux ) alsaLib
-    ++ optionals (buildWebkit || buildMultimedia) [ gstreamer gst_plugins_base ];
+    ++ optionals (buildWebkit || buildMultimedia) [ gstreamer gst-plugins-base ];
 
   # The following libraries are only used in plugins
   buildInputs =
     [ cups # Qt dlopen's libcups instead of linking to it
       postgresql sqlite libjpeg libmng libtiff icu ]
     ++ optionals (mysql != null) [ mysql.lib ]
-    ++ optionals gtkStyle [ gtk gdk_pixbuf ]
+    ++ optionals gtkStyle [ gtk2 gdk_pixbuf ]
     ++ optionals stdenv.isDarwin [ cf-private ApplicationServices OpenGL Cocoa AGL libcxx libobjc ];
 
   nativeBuildInputs = [ perl pkgconfig which ];
 
   enableParallelBuilding = false;
 
-  NIX_CFLAGS_COMPILE = optionalString (stdenv.isFreeBSD || stdenv.isDarwin)
-    "-I${glib.dev}/include/glib-2.0 -I${glib.out}/lib/glib-2.0/include"
+  NIX_CFLAGS_COMPILE =
+    optionalString stdenv.isLinux "-std=gnu++98" # gnu++ in (Obj)C flags is no good on Darwin
+    + optionalString (stdenv.isFreeBSD || stdenv.isDarwin)
+      " -I${glib.dev}/include/glib-2.0 -I${glib.out}/lib/glib-2.0/include"
     + optionalString stdenv.isDarwin " -I${libcxx}/include/c++/v1";
 
   NIX_LDFLAGS = optionalString (stdenv.isFreeBSD || stdenv.isDarwin)

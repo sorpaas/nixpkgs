@@ -25,7 +25,10 @@ in
       enable = mkOption {
         default = false;
         description = ''
-          Whether to configure zsh as an interactive shell.
+          Whether to configure zsh as an interactive shell. To enable zsh for
+          a particular user, use the <option>users.users.&lt;name?&gt;.shell</option>
+          option for that user. To enable zsh system-wide use the
+          <option>users.defaultUserShell</option> option.
         '';
         type = types.bool;
       };
@@ -81,6 +84,21 @@ in
         type = types.bool;
       };
 
+      enableSyntaxHighlighting = mkOption {
+        default = false;
+        description = ''
+          Enable zsh-syntax-highlighting
+        '';
+        type = types.bool;
+      };
+      
+      enableAutosuggestions = mkOption {
+        default = false;
+        description = ''
+          Enable zsh-autosuggestions
+        '';
+      };
+
     };
 
   };
@@ -105,17 +123,26 @@ in
 
         setopt HIST_IGNORE_DUPS SHARE_HISTORY HIST_FCNTL_LOCK
 
-        ${cfge.interactiveShellInit}
-
-        ${cfg.promptInit}
-        ${zshAliases}
-
         # Tell zsh how to find installed completions
         for p in ''${(z)NIX_PROFILES}; do
           fpath+=($p/share/zsh/site-functions $p/share/zsh/$ZSH_VERSION/functions)
         done
 
         ${if cfg.enableCompletion then "autoload -U compinit && compinit" else ""}
+
+        ${optionalString (cfg.enableSyntaxHighlighting)
+          "source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+        }
+
+        ${optionalString (cfg.enableAutosuggestions)
+          "source ${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+        }
+
+        ${zshAliases}
+        ${cfg.promptInit}
+
+        ${cfge.interactiveShellInit}
+
 
         HELPDIR="${pkgs.zsh}/share/zsh/$ZSH_VERSION/help"
       '';
@@ -179,7 +206,8 @@ in
     environment.etc."zinputrc".source = ./zinputrc;
 
     environment.systemPackages = [ pkgs.zsh ]
-      ++ optional cfg.enableCompletion pkgs.nix-zsh-completions;
+      ++ optional cfg.enableCompletion pkgs.nix-zsh-completions
+      ++ optional cfg.enableSyntaxHighlighting pkgs.zsh-syntax-highlighting;
 
     environment.pathsToLink = optional cfg.enableCompletion "/share/zsh";
 

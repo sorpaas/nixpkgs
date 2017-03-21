@@ -27,22 +27,28 @@ with stdenv.lib;
     MODULE_COMPRESS_XZ y
   ''}
 
+  KERNEL_XZ y
+
   # Debugging.
   DEBUG_KERNEL y
-  TIMER_STATS y
+  DYNAMIC_DEBUG y
   BACKTRACE_SELF_TEST n
   CPU_NOTIFIER_ERROR_INJECT? n
   DEBUG_DEVRES n
-  DEBUG_NX_TEST n
   DEBUG_STACK_USAGE n
   DEBUG_STACKOVERFLOW n
   RCU_TORTURE_TEST n
   SCHEDSTATS n
   DETECT_HUNG_TASK y
 
+  ${optionalString (versionOlder version "4.11") ''
+    TIMER_STATS y
+    DEBUG_NX_TEST n
+  ''}
+
   # Bump the maximum number of CPUs to support systems like EC2 x1.*
   # instances and Xeon Phi.
-  ${optionalString (stdenv.system == "x86_64-linux") ''
+  ${optionalString (stdenv.system == "x86_64-linux" || stdenv.system == "aarch64-linux") ''
     NR_CPUS 384
   ''}
 
@@ -118,6 +124,7 @@ with stdenv.lib;
   IP_VS_PROTO_ESP y
   IP_VS_PROTO_AH y
   IP_DCCP_CCID3 n # experimental
+  IP_MULTICAST y
   IPV6_ROUTER_PREF y
   IPV6_ROUTE_INFO y
   IPV6_OPTIMISTIC_DAD y
@@ -139,6 +146,7 @@ with stdenv.lib;
   L2TP_IP m
   L2TP_ETH m
   BRIDGE_VLAN_FILTERING y
+  BONDING m
 
   # Wireless networking.
   CFG80211_WEXT? y # Without it, ipw2200 drivers don't build
@@ -183,6 +191,10 @@ with stdenv.lib;
   ${optionalString (versionAtLeast version "4.5" && (versionOlder version "4.9")) ''
     DRM_AMD_POWERPLAY y # necessary for amdgpu polaris support
   ''}
+  ${optionalString (versionAtLeast version "4.9") ''
+    DRM_AMDGPU_SI y # (experimental) amdgpu support for verde and newer chipsets
+    DRM_AMDGPU_CIK y # (stable) amdgpu support for bonaire and newer chipsets
+  ''}
 
   # Sound.
   SND_DYNAMIC_MINORS y
@@ -210,6 +222,8 @@ with stdenv.lib;
   # ACLs for all filesystems that support them.
   FANOTIFY y
   TMPFS y
+  TMPFS_POSIX_ACL y
+  FS_ENCRYPTION? m
   EXT2_FS_XATTR y
   EXT2_FS_POSIX_ACL y
   EXT2_FS_SECURITY y
@@ -219,6 +233,7 @@ with stdenv.lib;
   EXT3_FS_POSIX_ACL y
   EXT3_FS_SECURITY y
   EXT4_FS_POSIX_ACL y
+  EXT4_ENCRYPTION? ${if versionOlder version "4.8" then "m" else "y"}
   EXT4_FS_SECURITY y
   REISERFS_FS_XATTR? y
   REISERFS_FS_POSIX_ACL? y
@@ -231,6 +246,10 @@ with stdenv.lib;
   OCFS2_DEBUG_MASKLOG? n
   BTRFS_FS_POSIX_ACL y
   UBIFS_FS_ADVANCED_COMPR? y
+  F2FS_FS m
+  F2FS_FS_SECURITY? y
+  F2FS_FS_ENCRYPTION? y
+  UDF_FS m
   ${optionalString (versionAtLeast version "4.0" && versionOlder version "4.6") ''
     NFSD_PNFS y
   ''}
@@ -252,6 +271,12 @@ with stdenv.lib;
   CIFS_XATTR y
   CIFS_POSIX y
   CIFS_FSCACHE y
+  CIFS_STATS y
+  CIFS_WEAK_PW_HASH y
+  CIFS_UPCALL y
+  CIFS_ACL y
+  CIFS_DFS_UPCALL y
+  CIFS_SMB2 y
   ${optionalString (versionAtLeast version "3.12") ''
     CEPH_FSCACHE y
   ''}
@@ -270,6 +295,13 @@ with stdenv.lib;
     SQUASHFS_LZ4 y
   ''}
 
+  # Native Language Support modules, needed by some filesystems
+  NLS y
+  NLS_DEFAULT utf8
+  NLS_UTF8 m
+  NLS_CODEPAGE_437 m # VFAT default for the codepage= mount option
+  NLS_ISO8859_1 m    # VFAT default for the iocharset= mount option
+
   # Runtime security tests
   DEBUG_SET_MODULE_RONX? y # Detect writes to read-only module pages
 
@@ -277,6 +309,7 @@ with stdenv.lib;
   RANDOMIZE_BASE? y
   STRICT_DEVMEM y # Filter access to /dev/mem
   SECURITY_SELINUX_BOOTPARAM_VALUE 0 # Disable SELinux by default
+  SECURITY_YAMA? y # Prevent processes from ptracing non-children processes
   DEVKMEM n # Disable /dev/kmem
   ${if versionOlder version "3.14" then ''
     CC_STACKPROTECTOR? y # Detect buffer overflows on the stack
@@ -327,6 +360,7 @@ with stdenv.lib;
   CGROUPS y # used by systemd
   FHANDLE y # used by systemd
   SECCOMP y # used by systemd >= 231
+  SECCOMP_FILTER y # ditto
   POSIX_MQUEUE y
   FRONTSWAP y
   FUSION y # Fusion MPT device support
@@ -349,7 +383,9 @@ with stdenv.lib;
   ${optionalString (versionAtLeast version "3.15" && versionOlder version "4.8") ''
     MLX4_EN_VXLAN y
   ''}
-  MODVERSIONS y
+  ${optionalString (versionOlder version "4.9") ''
+    MODVERSIONS y
+  ''}
   MOUSE_PS2_ELANTECH y # Elantech PS/2 protocol extension
   MTRR_SANITIZER y
   NET_FC y # Fibre Channel driver support
@@ -388,7 +424,7 @@ with stdenv.lib;
 
   # Linux containers.
   NAMESPACES? y #  Required by 'unshare' used by 'nixos-install'
-  RT_GROUP_SCHED? y
+  RT_GROUP_SCHED n
   CGROUP_DEVICE? y
   MEMCG y
   MEMCG_SWAP y
@@ -415,7 +451,7 @@ with stdenv.lib;
   FTRACE_SYSCALLS y
   SCHED_TRACER y
   STACK_TRACER y
-  UPROBE_EVENT y
+  UPROBE_EVENT? y
   ${optionalString (versionAtLeast version "4.4") ''
     BPF_SYSCALL y
     BPF_EVENTS y

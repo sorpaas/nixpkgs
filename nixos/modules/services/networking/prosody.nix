@@ -164,7 +164,7 @@ in
 
         description = "Define the virtual hosts";
 
-        type = types.loaOf types.optionSet;
+        type = with types; loaOf (submodule vHostOpts);
 
         example = {
           myhost = {
@@ -180,7 +180,6 @@ in
           };
         };
 
-        options = [ vHostOpts ];
       };
 
       ssl = mkOption {
@@ -196,6 +195,7 @@ in
       };
 
       extraConfig = mkOption {
+        type = types.lines;
         default = '''';
         description = "Additional prosody configuration";
       };
@@ -265,7 +265,8 @@ in
     systemd.services.prosody = {
 
       description = "Prosody XMPP server";
-      after = [ "network.target" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         User = "prosody";

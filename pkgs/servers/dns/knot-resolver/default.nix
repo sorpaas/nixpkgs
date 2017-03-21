@@ -1,7 +1,8 @@
-{ stdenv, fetchurl, pkgconfig, utillinux, which, knot-dns, luajit, libuv, lmdb
+{ stdenv, fetchurl, pkgconfig, utillinux, hexdump, which
+, knot-dns, luajit, libuv, lmdb
 , cmocka, systemd, hiredis, libmemcached
 , gnutls, nettle
-, lua51Packages, makeWrapper
+, luajitPackages, makeWrapper
 }:
 
 let
@@ -9,26 +10,26 @@ let
 in
 stdenv.mkDerivation rec {
   name = "knot-resolver-${version}";
-  version = "1.2.3";
+  version = "1.2.4";
 
   src = fetchurl {
     url = "http://secure.nic.cz/files/knot-resolver/${name}.tar.xz";
-    sha256 = "81a773f182112b4e11935223f900cfbcca8624f2c382b1e39a68d7c3db81c921";
+    sha256 = "630b2ad0bfdcf59164957a377adef8b1fddc37a58a7e1d10e76a1b497a30f036";
   };
 
   outputs = [ "out" "dev" ];
 
   configurePhase = ":";
 
-  nativeBuildInputs = [ pkgconfig utillinux.bin/*hexdump*/ which ];
+  nativeBuildInputs = [ pkgconfig which makeWrapper hexdump ];
+
   buildInputs = [ knot-dns luajit libuv gnutls ]
-    # TODO: lmdb needs lmdb.pc; embedded for now
+    ++ optional stdenv.isLinux lmdb # system lmdb causes some problems on Darwin
     ## optional dependencies
     ++ optional doInstallCheck cmocka
+    ++ optional stdenv.isLinux systemd # socket activation
     ++ [
       nettle # DNS cookies
-      systemd # socket activation
-      makeWrapper
       hiredis libmemcached # additional cache backends
       # http://knot-resolver.readthedocs.io/en/latest/build.html#requirements
     ];
@@ -45,7 +46,7 @@ stdenv.mkDerivation rec {
   '';
 
   # optional: to allow auto-bootstrapping root trust anchor via https
-  postInstall = with lua51Packages; ''
+  postInstall = with luajitPackages; ''
     wrapProgram "$out/sbin/kresd" \
       --set LUA_PATH '${
         stdenv.lib.concatStringsSep ";"

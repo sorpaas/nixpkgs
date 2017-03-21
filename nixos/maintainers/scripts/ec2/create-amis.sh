@@ -1,4 +1,8 @@
-#! /bin/sh -e
+#!/usr/bin/env nix-shell
+#! nix-shell -i bash -p qemu ec2_ami_tools jq ec2_api_tools awscli
+
+# To start with do: nix-shell -p awscli --run "aws configure"
+
 
 set -o pipefail
 #set -x
@@ -57,7 +61,7 @@ for type in $types; do
                     ami=$(aws ec2 copy-image \
                         --region "$region" \
                         --source-region "$prevRegion" --source-image-id "$prevAmi" \
-                        --name "$name" --description "$description" | json -q .ImageId)
+                        --name "$name" --description "$description" | jq -r '.ImageId')
                     if [ "$ami" = null ]; then break; fi
                 else
 

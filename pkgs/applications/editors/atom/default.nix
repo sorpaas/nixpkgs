@@ -1,12 +1,12 @@
-{ stdenv, fetchurl, lib, makeWrapper, gvfs, atomEnv, libXScrnSaver, libxkbfile }:
+{ stdenv, fetchurl, lib, makeWrapper, gvfs, atomEnv}:
 
 stdenv.mkDerivation rec {
   name = "atom-${version}";
-  version = "1.13.1";
+  version = "1.14.4";
 
   src = fetchurl {
     url = "https://github.com/atom/atom/releases/download/v${version}/atom-amd64.deb";
-    sha256 = "0nkd0nrnnmln5fjs1c97dligzqp744j4y6lqanfbs9vrxms6mnq3";
+    sha256 = "0b1dbhpphbsjkizii6l5cxr2pqk6bjix0amc2avk3p7ys710zazv";
     name = "${name}.deb";
   };
 
@@ -33,8 +33,11 @@ stdenv.mkDerivation rec {
     patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
       --set-rpath "${atomEnv.libPath}" \
       $out/share/atom/resources/app/apm/bin/node
+
     patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
       $out/share/atom/resources/app.asar.unpacked/node_modules/symbols-view/vendor/ctags-linux
+
+    find $out/share/atom -name "*.node" -exec patchelf --set-rpath "${atomEnv.libPath}:$out/share/atom" {} \;
   '';
 
   meta = with stdenv.lib; {

@@ -3,18 +3,19 @@
 }:
 
 let
-  version = "2.3";
+  version = "2.4.1";
 in
 
 stdenv.mkDerivation rec {
   name = "sfml-${version}";
   src = fetchurl {
     url = "https://github.com/LaurentGomila/SFML/archive/${version}.tar.gz";
-    sha256 = "12588hfs0pfsv20x3zhq0gdmxv9m7g27i5lfz88303kpglp9yzn2";
+    sha256 = "13irazmqk9vcgkigsjcxns7xjmnz1gifw0b656z1rpz208diklgr";
   };
   buildInputs = [ cmake libX11 freetype libjpeg openal flac libvorbis glew
                   libXrandr libXrender udev xcbutilimage
                 ];
+  cmakeFlags = [ "-DSFML_INSTALL_PKGCONFIG_FILES=yes" ];
   meta = with stdenv.lib; {
     homepage = http://www.sfml-dev.org/;
     description = "Simple and fast multimedia library";

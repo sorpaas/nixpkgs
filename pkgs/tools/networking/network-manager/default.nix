@@ -7,13 +7,15 @@
 stdenv.mkDerivation rec {
   name    = "network-manager-${version}";
   pname   = "NetworkManager";
-  major   = "1.2";
+  major   = "1.4";
   version = "${major}.4";
 
   src = fetchurl {
     url    = "mirror://gnome/sources/${pname}/${major}/${pname}-${version}.tar.xz";
-    sha256 = "1alglc7xwi9q12l4xan5w3k0zmcz3zcjg01s8h8d0wnldlqbggqr";
+    sha256 = "029k2f1arx1m5hppmr778i9yg34jj68nmji3i89qs06c33rpi4w2";
   };
+
+  outputs = [ "out" "dev" ];
 
   preConfigure = ''
     substituteInPlace configure --replace /usr/bin/uname ${coreutils}/bin/uname

@@ -34,7 +34,7 @@ let
       config.programs.ssh.package
       pkgs.perl
       pkgs.procps
-      pkgs.rsync # used by nixos-install anyway
+      pkgs.rsync
       pkgs.strace
       pkgs.su
       pkgs.time
@@ -118,6 +118,7 @@ in
         "/share/terminfo"
         "/share/themes"
         "/share/vim-plugins"
+        "/share/vulkan"
       ];
 
     system.path = pkgs.buildEnv {

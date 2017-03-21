@@ -3,13 +3,13 @@
 
 stdenv.mkDerivation rec {
   name = "zstd-${version}";
-  version = "0.7.5";
+  version = "1.1.3";
 
   src = fetchFromGitHub {
-    sha256 = "07b4gmmkk2b28vmmhcg8h2imzccav1qklgvbdg2k6nl9p88zwzkd";
+    sha256 = "1d46hs6pyq55izcmnk7hzvbl8iyxh7bp7qchc7rl8ay396ax2sd5";
     rev = "v${version}";
     repo = "zstd";
-    owner = "Cyan4973";
+    owner = "facebook";
   };
 
   # The Makefiles don't properly use file targets, but blindly rebuild
@@ -33,7 +33,7 @@ stdenv.mkDerivation rec {
       compression speed. Speed/ratio trade-off is configurable by small
       increment, to fit different situations. Note however that decompression
       speed is preserved and remain roughly the same at all settings, a
-      property shared by most LZ compression algorithms, such as zlib. 
+      property shared by most LZ compression algorithms, such as zlib.
     '';
     homepage = http://www.zstd.net/;
     # The licence of the CLI programme is GPLv2+, that of the library BSD-2.

@@ -12,8 +12,8 @@ assert cupsSupport -> cups != null;
 with stdenv.lib;
 
 let
-  ver_maj = "3.20";
-  ver_min = "9";
+  ver_maj = "3.22";
+  ver_min = "8";
   version = "${ver_maj}.${ver_min}";
 in
 stdenv.mkDerivation rec {
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://gnome/sources/gtk+/${ver_maj}/gtk+-${version}.tar.xz";
-    sha256 = "05xcwvy68p7f4hdhi4bgdm3aycvqqr4pr5kkkr8ba91l5yx0k9l3";
+    sha256 = "c7254a88df5c17e9609cee9e848c3d0104512707edad4c3b4f256b131f8d3af1";
   };
 
   outputs = [ "out" "dev" ];
@@ -36,7 +36,7 @@ stdenv.mkDerivation rec {
     [ expat glib cairo pango gdk_pixbuf atk at_spi2_atk
       libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
     ++ optionals waylandSupport [ wayland wayland-protocols ]
-    ++ optional stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ AppKit Cocoa ])
+    ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ AppKit Cocoa ])
     ++ optional xineramaSupport libXinerama
     ++ optional cupsSupport cups;
   #TODO: colord?

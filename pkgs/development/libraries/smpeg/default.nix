@@ -1,4 +1,4 @@
-{ stdenv, fetchsvn, SDL, autoconf, automake, libtool, gtk, m4, pkgconfig, mesa, makeWrapper }:
+{ stdenv, fetchsvn, SDL, autoconf, automake, libtool, gtk2, m4, pkgconfig, mesa, makeWrapper }:
 
 stdenv.mkDerivation rec {
   name = "smpeg-svn${version}";
@@ -10,11 +10,14 @@ stdenv.mkDerivation rec {
     sha256 = "0ynwn7ih5l2b1kpzpibns9bb9wzfjak7mgrb1ji0dkn2q5pv6lr0";
   };
 
+  patches = [
+    ./format.patch
+    ./gcc6.patch
+  ];
+
   enableParallelBuilding = true;
 
-  hardeningDisable = [ "format" ];
-
-  buildInputs = [ SDL gtk mesa ];
+  buildInputs = [ SDL gtk2 mesa ];
 
   nativeBuildInputs = [ autoconf automake libtool m4 pkgconfig makeWrapper ];
 

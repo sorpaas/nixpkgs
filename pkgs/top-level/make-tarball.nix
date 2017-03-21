@@ -67,7 +67,7 @@ releaseTools.sourceTarball rec {
     for platform in i686-linux x86_64-linux x86_64-darwin; do
         header "checking Nixpkgs on $platform"
 
-        NIXPKGS_ALLOW_BROKEN=1 nix-env -f . \
+        nix-env -f . \
             --show-trace --argstr system "$platform" \
             -qa --drv-path --system-filter \* --system \
             "''${opts[@]}" 2>&1 >/dev/null | tee eval-warnings.log
@@ -78,7 +78,7 @@ releaseTools.sourceTarball rec {
         fi
         rm eval-warnings.log
 
-        NIXPKGS_ALLOW_BROKEN=1 nix-env -f . \
+        nix-env -f . \
             --show-trace --argstr system "$platform" \
             -qa --drv-path --system-filter \* --system --meta --xml \
             "''${opts[@]}" > /dev/null

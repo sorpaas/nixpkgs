@@ -4,11 +4,12 @@
 stdenv.mkDerivation rec {
   name    = "${pname}${if withGnome then "-gnome" else ""}-${version}";
   pname   = "NetworkManager-openconnect";
-  version = "1.2.2";
+  major   = "1.2";
+  version = "${major}.4";
 
   src = fetchurl {
-    url    = "mirror://gnome/sources/${pname}/${networkmanager.major}/${pname}-${version}.tar.xz";
-    sha256 = "522979593e21b4e884112816708db9eb66148b3491580dacfad53472b94aafec";
+    url    = "mirror://gnome/sources/${pname}/${major}/${pname}-${version}.tar.xz";
+    sha256 = "15j98wwspv6mcmy91w30as5qc1bzsnhlk060xhjy4qrvd37y0xx1";
   };
 
   buildInputs = [ openconnect networkmanager libsecret ]

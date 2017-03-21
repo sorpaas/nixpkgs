@@ -1,40 +1,22 @@
-{ stdenv, fetchgit, fetchurl, fetchpatch, pkgconfig
+{ stdenv, fetchurl, fetchpatch, pkgconfig
 , zlib, freetype, libjpeg, jbig2dec, openjpeg
 , libX11, libXcursor, libXrandr, libXinerama, libXext, harfbuzz, mesa }:
 
-let
-  mujs = fetchgit {
-    url    = "http://git.ghostscript.com/mujs.git";
-    rev    = "4006739a28367c708dea19aeb19b8a1a9326ce08";
-    sha256 = "0wvjl8lkh0ga6fkmxgjqq77yagncbv1bdy6hpnxq31x3mkwn1s51";
-  };
-
-in stdenv.mkDerivation rec {
-  version = "1.9a";
+stdenv.mkDerivation rec {
+  version = "1.10a";
   name = "mupdf-${version}";
 
   src = fetchurl {
     url = "http://mupdf.com/downloads/archive/${name}-source.tar.gz";
-    sha256 = "1k64pdapyj8a336jw3j61fhn0rp4q6az7d0dqp9r5n3d9rgwa5c0";
+    sha256 = "0dm8wcs8i29aibzkqkrn8kcnk4q0kd1v66pg48h5c3qqp4v1zk5a";
   };
 
   patches = [
-    # http://www.openwall.com/lists/oss-security/2016/08/03/2
-    (fetchpatch {
-      name = "mupdf-fix-CVE-2016-6525.patch";
-      url = "http://git.ghostscript.com/?p=mupdf.git;a=commitdiff_plain;h=39b0f07dd960f34e7e6bf230ffc3d87c41ef0f2e;hp=fa1936405b6a84e5c9bb440912c23d532772f958";
-      sha256 = "1g9fkd1f5rx1z043vr9dj4934qf7i4nkvbwjc61my9azjrrc3jv7";
-    })
-    (fetchpatch {
-      name = "mupdf-696941-fix-use-after-free.patch";
-      url = "http://git.ghostscript.com/?p=mupdf.git;a=patch;h=fa1936405b6a84e5c9bb440912c23d532772f958";
-      sha256 = "02j9b6my1h3rb0sz9yp6gi7c4ldi3mz0z9s5i8g9cl0arxyzys5h";
-    })
     # Compatibility with new openjpeg
     (fetchpatch {
       name = "mupdf-1.9a-openjpeg-2.1.1.patch";
-      url = "https://git.archlinux.org/svntogit/community.git/plain/mupdf/trunk/0001-mupdf-openjpeg.patch?id=9083dac2a398bfe694d31a0c6a0a839c5a756e53";
-      sha256 = "14ndgy3w1sl25km9bcc2zfcxrcihqjw1sdzkpcw5g1mi7gcgxp3g";
+      url = "https://git.archlinux.org/svntogit/community.git/plain/mupdf/trunk/0001-mupdf-openjpeg.patch?id=5a28ad0a8999a9234aa7848096041992cc988099";
+      sha256 = "1i24qr4xagyapx4bijjfksj4g3bxz8vs5c2mn61nkm29c63knp75";
     })
 
     (fetchurl {
@@ -46,12 +28,12 @@ in stdenv.mkDerivation rec {
 
   makeFlags = [ "prefix=$(out)" ];
   nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [ mujs zlib libX11 libXcursor libXext harfbuzz mesa libXrandr libXinerama freetype libjpeg jbig2dec openjpeg ];
+  buildInputs = [ zlib libX11 libXcursor libXext harfbuzz mesa libXrandr libXinerama freetype libjpeg jbig2dec openjpeg ];
   outputs = [ "bin" "dev" "out" "doc" ];
 
   preConfigure = ''
-    rm -rf thirdparty/{curl,freetype,glfw,harfbuzz,jbig2dec,jpeg,mujs,openjpeg,zlib}
-    cp -r ${mujs} thirdparty/mujs
+    # Don't remove mujs because upstream version is incompatible
+    rm -rf thirdparty/{curl,freetype,glfw,harfbuzz,jbig2dec,jpeg,openjpeg,zlib}
   '';
 
   postInstall = ''

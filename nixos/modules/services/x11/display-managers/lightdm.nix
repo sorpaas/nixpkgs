@@ -23,7 +23,7 @@ let
       else additionalArgs="-logfile /var/log/X.$display.log"
       fi
 
-      exec ${dmcfg.xserverBin} ${dmcfg.xserverArgs} $additionalArgs "$@"
+      exec ${dmcfg.xserverBin} ${toString dmcfg.xserverArgs} $additionalArgs "$@"
     '';
 
   usersConf = writeText "users.conf"
@@ -204,6 +204,9 @@ in
 
     services.dbus.enable = true;
     services.dbus.packages = [ lightdm ];
+
+    # lightdm uses the accounts daemon to rember language/window-manager per user
+    services.accounts-daemon.enable = true;
 
     security.pam.services.lightdm = {
       allowNullPassword = true;

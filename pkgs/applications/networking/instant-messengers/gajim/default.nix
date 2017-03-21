@@ -1,40 +1,60 @@
-{ stdenv, fetchurl, python, intltool, pkgconfig, libX11, gtk
+{ stdenv, fetchurl, autoreconfHook, python, intltool, pkgconfig, libX11
 , ldns, pythonPackages
 
-, enableJingle ? true, farstream ? null, gst_plugins_bad ? null
+# Test requirements
+, xvfb_run
+
+, enableJingle ? true, farstream ? null, gst-plugins-bad ? null
 ,                      libnice ? null
 , enableE2E ? true
 , enableRST ? true
-, enableSpelling ? true, gtkspell ? null
+, enableSpelling ? true, gtkspell2 ? null
 , enableNotifications ? false
+, enableOmemoPluginDependencies ? true
 , extraPythonPackages ? pkgs: []
 }:
 
-assert enableJingle -> farstream != null && gst_plugins_bad != null
+assert enableJingle -> farstream != null && gst-plugins-bad != null
                     && libnice != null;
 assert enableE2E -> pythonPackages.pycrypto != null;
 assert enableRST -> pythonPackages.docutils != null;
-assert enableSpelling -> gtkspell != null;
+assert enableSpelling -> gtkspell2 != null;
 assert enableNotifications -> pythonPackages.notify != null;
 
 with stdenv.lib;
 
 stdenv.mkDerivation rec {
   name = "gajim-${version}";
-  version = "0.16.5";
+  version = "0.16.6";
 
   src = fetchurl {
-    url = "http://www.gajim.org/downloads/0.16/gajim-${version}.tar.bz2";
-    sha256 = "14fhcqnkqygh91132dnf1idayj4r3iqbwb44sd3mxv20n6ribh55";
+    name = "${name}.tar.bz2";
+    url = "https://dev.gajim.org/gajim/gajim/repository/archive.tar.bz2?"
+        + "ref=${name}";
+    sha256 = "1s0h4xll9490vh7ygmi4zsd1fa107f3s9ykhpq0snb04fllwhjq7";
   };
 
-  patches = [
-    (fetchurl {
-      name = "gajim-icon-index.patch";
-      url = "http://hg.gajim.org/gajim/raw-rev/b9ec78663dfb";
-      sha256 = "0w54hr5dq9y36val55kmh8d6cid7h4fs2nghx09714jylz2nyxxv";
-    })
-  ];
+  patches = let
+    # An attribute set of revisions to apply from the upstream repository.
+    cherries = {
+      misc-test-fixes = {
+        rev = "1f0d7387fd020df5dfc9a6349005ec7dedb7c008";
+        sha256 = "0nazpzyg50kl0k8z4dkn033933iz60g1i6nzhib1nmzhwwbnacc5";
+      };
+      jingle-fix = {
+        rev = "491d32a2ec13ed3a482e151e0b403eda7b4151b8";
+        sha256 = "1pfg1ysr0p6rcwmd8ikjs38av3c4gcxn8pxr6cnnj27n85gvi30g";
+      };
+      fix-connection-mock = {
+        rev = "46a19733d208fbd2404cbaeedd8c203d0b6557a4";
+        sha256 = "0l3s577pksnz16r4mqa1zmz4y165amsx2mclrm4vzlszy35rmy2b";
+      };
+    };
+  in mapAttrsToList (name: { rev, sha256 }: fetchurl {
+    name = "gajim-${name}.patch";
+    url = "https://dev.gajim.org/gajim/gajim/commit/${rev}.diff";
+    inherit sha256;
+  }) cherries;
 
   postPatch = ''
     sed -i -e '0,/^[^#]/ {
@@ -43,32 +63,45 @@ stdenv.mkDerivation rec {
         }$GST_PLUGIN_PATH"'"
     }' scripts/gajim.in
 
-    sed -i -e 's/return helpers.is_in_path('"'"'drill.*/return True/' \
-      src/features_window.py
-    sed -i -e "s|'drill'|'${ldns}/bin/drill'|" src/common/resolver.py
+    # requires network access
+    echo "" > test/integration/test_resolver.py
+
+    # We want to run tests in installCheckPhase rather than checkPhase to test
+    # whether the *installed* version of Gajim works rather than just whether it
+    # works in the unpacked source tree.
+    sed -i -e '/sys\.path\.insert.*gajim_root.*\/src/d' test/lib/__init__.py
   '' + optionalString enableSpelling ''
-    sed -i -e 's|=.*find_lib.*|= "${gtkspell}/lib/libgtkspell.so"|'   \
+    sed -i -e 's|=.*find_lib.*|= "${gtkspell2}/lib/libgtkspell.so"|'   \
       src/gtkspell.py
   '';
 
   buildInputs = [
     python libX11
-  ] ++ optionals enableJingle [ farstream gst_plugins_bad libnice ];
+  ] ++ optionals enableJingle [ farstream gst-plugins-bad libnice ];
 
   nativeBuildInputs = [
-    pythonPackages.wrapPython intltool pkgconfig
+    autoreconfHook pythonPackages.wrapPython intltool pkgconfig
+    # Test dependencies
+    xvfb_run
   ];
 
-  propagatedBuildInputs = [
-    pythonPackages.pygobject pythonPackages.pyGtkGlade
-    pythonPackages.sqlite3 pythonPackages.pyasn1
-    pythonPackages.pyxdg
-    pythonPackages.nbxmpp
-    pythonPackages.pyopenssl pythonPackages.dbus-python
+  autoreconfPhase = ''
+    sed -e 's/which/type -P/;s,\./configure,:,' autogen.sh | bash
+  '';
+
+  propagatedBuildInputs = with pythonPackages; [
+    libasyncns
+    pygobject2 pyGtkGlade
+    pyasn1
+    pyxdg
+    nbxmpp
+    pyopenssl dbus-python
   ] ++ optional enableE2E pythonPackages.pycrypto
     ++ optional enableRST pythonPackages.docutils
     ++ optional enableNotifications pythonPackages.notify
-    ++ extraPythonPackages pythonPackages;
+    ++ optionals enableOmemoPluginDependencies (with pythonPackages; [
+      cryptography python-axolotl python-axolotl-curve25519 qrcode
+    ]) ++ extraPythonPackages pythonPackages;
 
   postFixup = ''
     install -m 644 -t "$out/share/gajim/icons/hicolor" \
@@ -84,6 +117,13 @@ stdenv.mkDerivation rec {
 
       patchPythonScript "$out/share/gajim/src/$name.py"
     done
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    XDG_DATA_DIRS="$out/share/gajim''${XDG_DATA_DIRS:+:}$XDG_DATA_DIRS" \
+    PYTHONPATH="test:$out/share/gajim/src:''${PYTHONPATH:+:}$PYTHONPATH" \
+      xvfb-run make test
   '';
 
   enableParallelBuilding = true;

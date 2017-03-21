@@ -1,13 +1,13 @@
-{ stdenv, fetchurl, buildPythonApplication }:
+{ stdenv, fetchurl, python2Packages }:
 
-buildPythonApplication rec {
-  version = "4.50.0";
+python2Packages.buildPythonApplication rec {
+  version = "4.53.0";
   name = "getmail-${version}";
   namePrefix = "";
 
   src = fetchurl {
     url = "http://pyropus.ca/software/getmail/old-versions/${name}.tar.gz";
-    sha256 = "1hcb5079mkcx3gglfycrhglrgg4jsa499br50yjrh9sal6wpgg7w";
+    sha256 = "1awjdxiq3d25h10h32a7h2wxbkgvgvsnicp5xwx4p8mm6gz9c998";
   };
 
   doCheck = false;

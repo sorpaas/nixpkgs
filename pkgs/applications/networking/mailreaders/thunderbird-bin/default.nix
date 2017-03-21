@@ -13,9 +13,9 @@
 , gdk_pixbuf
 , glib
 , glibc
-, gst_plugins_base
+, gst-plugins-base
 , gstreamer
-, gtk
+, gtk2
 , kerberos
 , libX11
 , libXScrnSaver
@@ -26,13 +26,19 @@
 , libXinerama
 , libXrender
 , libXt
-, libcanberra
+, libcanberra_gtk2
 , libgnome
 , libgnomeui
 , mesa
 , nspr
 , nss
 , pango
+, writeScript
+, xidel
+, coreutils
+, gnused
+, gnugrep
+, gnupg
 }:
 
 assert stdenv.isLinux;
@@ -57,10 +63,11 @@ let
 
   source = stdenv.lib.findFirst (sourceMatches systemLocale) defaultSource sources;
 
+  name = "thunderbird-bin-${version}";
 in
 
 stdenv.mkDerivation {
-  name = "thunderbird-bin-${version}";
+  inherit name;
 
   src = fetchurl {
     url = "http://download-installer.cdn.mozilla.net/pub/thunderbird/releases/${version}/${source.arch}/${source.locale}/thunderbird-${version}.tar.bz2";
@@ -85,9 +92,9 @@ stdenv.mkDerivation {
       gdk_pixbuf
       glib
       glibc
-      gst_plugins_base
+      gst-plugins-base
       gstreamer
-      gtk
+      gtk2
       kerberos
       libX11
       libXScrnSaver
@@ -98,7 +105,7 @@ stdenv.mkDerivation {
       libXinerama
       libXrender
       libXt
-      libcanberra
+      libcanberra_gtk2
       libgnome
       libgnomeui
       mesa
@@ -141,6 +148,12 @@ stdenv.mkDerivation {
       EOF
     '';
 
+  passthru.updateScript = import ./../../browsers/firefox-bin/update.nix {
+    inherit name writeScript xidel coreutils gnused gnugrep curl gnupg;
+    baseName = "thunderbird";
+    basePath = "pkgs/applications/networking/mailreaders/thunderbird-bin";
+    baseUrl = "http://archive.mozilla.org/pub/thunderbird/releases/";
+  };
   meta = with stdenv.lib; {
     description = "Mozilla Thunderbird, a full-featured email client (binary package)";
     homepage = http://www.mozilla.org/thunderbird/;

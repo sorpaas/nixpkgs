@@ -10,15 +10,14 @@ with lib;
     (mkRenamedOptionModule [ "fonts" "enableFontConfig" ] [ "fonts" "fontconfig" "enable" ])
     (mkRenamedOptionModule [ "fonts" "extraFonts" ] [ "fonts" "fonts" ])
 
-    (mkRenamedOptionModule [ "security" "extraSetuidPrograms" ] [ "security" "setuidPrograms" ])
     (mkRenamedOptionModule [ "networking" "enableWLAN" ] [ "networking" "wireless" "enable" ])
     (mkRenamedOptionModule [ "networking" "enableRT73Firmware" ] [ "networking" "enableRalinkFirmware" ])
 
     (mkRenamedOptionModule [ "services" "cadvisor" "host" ] [ "services" "cadvisor" "listenAddress" ])
-    (mkRenamedOptionModule [ "services" "dockerRegistry" "host" ] [ "services" "dockerRegistry" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "elasticsearch" "host" ] [ "services" "elasticsearch" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "graphite" "api" "host" ] [ "services" "graphite" "api" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "graphite" "web" "host" ] [ "services" "graphite" "web" "listenAddress" ])
+    (mkRenamedOptionModule [ "services" "logstash" "address" ] [ "services" "logstash" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "kibana" "host" ] [ "services" "kibana" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "mpd" "network" "host" ] [ "services" "mpd" "network" "listenAddress" ])
     (mkRenamedOptionModule [ "services" "neo4j" "host" ] [ "services" "neo4j" "listenAddress" ])
@@ -32,6 +31,9 @@ with lib;
     (mkRemovedOptionModule [ "services" "gitlab" "satelliteDir" ] "")
 
     (mkRenamedOptionModule [ "services" "clamav" "updater" "config" ] [ "services" "clamav" "updater" "extraConfig" ])
+
+    (mkRemovedOptionModule [ "security" "setuidOwners" ] "Use security.wrappers instead")
+    (mkRemovedOptionModule [ "security" "setuidPrograms" ] "Use security.wrappers instead")
 
     # Old Grub-related options.
     (mkRenamedOptionModule [ "boot" "initrd" "extraKernelModules" ] [ "boot" "initrd" "kernelModules" ])
@@ -101,9 +103,6 @@ with lib;
     (mkRenamedOptionModule [ "services" "xserver" "windowManager" "xbmc" ] [ "services" "xserver" "desktopManager" "kodi" ])
     (mkRenamedOptionModule [ "services" "xserver" "desktopManager" "xbmc" ] [ "services" "xserver" "desktopManager" "kodi" ])
 
-    # DNSCrypt-proxy
-    (mkRenamedOptionModule [ "services" "dnscrypt-proxy" "port" ] [ "services" "dnscrypt-proxy" "localPort" ])
-
     (mkRenamedOptionModule [ "services" "hostapd" "extraCfg" ] [ "services" "hostapd" "extraConfig" ])
 
     # Enlightenment
@@ -144,6 +143,40 @@ with lib;
 
     # murmur
     (mkRenamedOptionModule [ "services" "murmur" "welcome" ] [ "services" "murmur" "welcometext" ])
+
+    # parsoid
+    (mkRemovedOptionModule [ "services" "parsoid" "interwikis" ] [ "services" "parsoid" "wikis" ])
+
+    # tarsnap
+    (mkRemovedOptionModule [ "services" "tarsnap" "cachedir" ] "Use services.tarsnap.archives.<name>.cachedir")
+
+    # alsa
+    (mkRenamedOptionModule [ "sound" "enableMediaKeys" ] [ "sound" "mediaKeys" "enable" ])
+
+    # postgrey
+    (mkMergedOptionModule [ [ "services" "postgrey" "inetAddr" ] [ "services" "postgrey" "inetPort" ] ] [ "services" "postgrey" "socket" ] (config: let
+        value = p: getAttrFromPath p config;
+        inetAddr = [ "services" "postgrey" "inetAddr" ];
+        inetPort = [ "services" "postgrey" "inetPort" ];
+      in
+        if value inetAddr == null
+        then { path = "/var/run/postgrey.sock"; }
+        else { addr = value inetAddr; port = value inetPort; }
+    ))
+
+    # dhcpd
+    (mkRenamedOptionModule [ "services" "dhcpd" ] [ "services" "dhcpd4" ])
+
+    # locate
+    (mkRenamedOptionModule [ "services" "locate" "period" ] [ "services" "locate" "interval" ])
+    (mkRemovedOptionModule [ "services" "locate" "includeStore" ] "Use services.locate.prunePaths" )
+
+    # nfs
+    (mkRenamedOptionModule [ "services" "nfs" "lockdPort" ] [ "services" "nfs" "server" "lockdPort" ])
+    (mkRenamedOptionModule [ "services" "nfs" "statdPort" ] [ "services" "nfs" "server" "statdPort" ])
+
+    # KDE Plasma 5
+    (mkRenamedOptionModule [ "services" "xserver" "desktopManager" "kde5" ] [ "services" "xserver" "desktopManager" "plasma5" ])
 
     # Options that are obsolete and have no replacement.
     (mkRemovedOptionModule [ "boot" "initrd" "luks" "enable" ] "")

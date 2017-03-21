@@ -2,7 +2,7 @@
 
 buildGoPackage rec {
   name = "fzf-${version}";
-  version = "0.13.3";
+  version = "0.16.4";
   rev = "${version}";
 
   goPackagePath = "github.com/junegunn/fzf";
@@ -11,8 +11,10 @@ buildGoPackage rec {
     inherit rev;
     owner = "junegunn";
     repo = "fzf";
-    sha256 = "0mfrlb91akzrj0qpjpaa9bkp6m9z95z56glamry73qy21vbnj58m";
+    sha256 = "0kq4j6q1xk17ryzzcb8s6l2zqsjkk75lrwalias9gwcriqs6k6yn";
   };
+
+  outputs = [ "bin" "out" "man" ];
 
   buildInputs = [ ncurses ];
 
@@ -23,8 +25,10 @@ buildGoPackage rec {
     sed -i -e "s|expand('<sfile>:h:h').'/bin/fzf-tmux'|'$bin/bin/fzf-tmux'|" plugin/fzf.vim
   '';
 
-  postInstall= ''
+  postInstall = ''
     cp $src/bin/fzf-tmux $bin/bin
+    mkdir -p $man/share/man
+    cp -r $src/man/man1 $man/share/man
     mkdir -p $out/share/vim-plugins
     ln -s $out/share/go/src/github.com/junegunn/fzf $out/share/vim-plugins/${name}
   '';

@@ -181,6 +181,13 @@ let self = dotnetPackages // overrides; dotnetPackages = with self; {
     outputFiles = [ "bin/*" ];
   };
 
+  OpenNAT = fetchNuGet {
+    baseName = "Open.NAT";
+    version = "2.1.0";
+    sha256 = "1jyd30fwycdwx5ck96zhp2xf20yz0sp7g3pjbqhmay4kd322mfwk";
+    outputFiles = [ "lib/*" ];
+  };
+
   MonoNat = fetchNuGet {
     baseName = "Mono.Nat";
     version = "1.2.24";
@@ -212,6 +219,83 @@ let self = dotnetPackages // overrides; dotnetPackages = with self; {
   };
 
   # SOURCE PACKAGES
+
+  Boogie = buildDotnetPackage rec {
+    baseName = "Boogie";
+    version = "2017-01-03";
+    name = "${baseName}-unstable-${version}";
+
+    src = fetchFromGitHub {
+      owner = "boogie-org";
+      repo = "boogie";
+      rev = "5e42f0dd2891b2b85a9198052e55592a2943b7ef";
+      sha256 = "1mjnf96hbn9abgzyvmrfxlhnm213290xb9wca7rnnl12i4fa4ahl";
+    };
+
+    buildInputs = [ dotnetPackages.NUnitRunners ];
+
+    xBuildFiles = [ "Source/Boogie.sln" ];
+
+    outputFiles = [ "Binaries/*" ];
+
+    postInstall = ''
+        mkdir -pv "$out/lib/dotnet/${baseName}"
+        ln -sv "${pkgs.z3}/bin/z3" "$out/lib/dotnet/${baseName}/z3.exe"
+    '';
+
+    meta = with stdenv.lib; {
+      description = "An intermediate verification language";
+      homepage = "https://github.com/boogie-org/boogie";
+      license = licenses.mspl;
+      maintainers = [ maintainers.taktoa ];
+      platforms = with platforms; (linux ++ darwin);
+    };
+  };
+
+  Dafny = buildDotnetPackage rec {
+    baseName = "Dafny";
+    version = "1.9.8";
+
+    src = fetchurl {
+      url = "https://github.com/Microsoft/dafny/archive/v${version}.tar.gz";
+      sha256 = "0n4pk4cv7d2zsn4xmyjlxvpfl9avq79r06c7kzmrng24p3k4qj6s";
+    };
+
+    preBuild = ''
+      ln -s ${pkgs.z3} Binaries/z3
+    '';
+
+    buildInputs = [ Boogie ];
+
+    xBuildFiles = [ "Source/Dafny.sln" ];
+    xBuildFlags = [ ];
+
+    outputFiles = [ "Binaries/*" ];
+
+    # Do not wrap the z3 executable, only dafny-related ones.
+    exeFiles = [ "Dafny*.exe" ];
+
+    # Dafny needs mono in its path.
+    makeWrapperArgs = "--set PATH ${mono}/bin";
+
+    # Boogie as an input is not enough. Boogie libraries need to be at the same
+    # place as Dafny ones. Same for "*.dll.mdb". No idea why or how to fix.
+    postFixup = ''
+      for lib in ${Boogie}/lib/dotnet/${Boogie.baseName}/*.dll{,.mdb}; do
+        ln -s $lib $out/lib/dotnet/${baseName}/
+      done
+      # We generate our own executable scripts
+      rm -f $out/lib/dotnet/${baseName}/dafny{,-server}
+    '';
+
+    meta = with stdenv.lib; {
+      description = "A programming language with built-in specification constructs";
+      homepage = "http://research.microsoft.com/dafny";
+      maintainers = with maintainers; [ layus ];
+      license = licenses.mit;
+      platforms = with platforms; (linux ++ darwin);
+    };
+  };
 
   Deedle = buildDotnetPackage rec {
     baseName = "Deedle";
@@ -580,7 +664,7 @@ let self = dotnetPackages // overrides; dotnetPackages = with self; {
       sha256 = "1hnn0a2qsjcjprsxas424bzvhsdwy0yc2jj5xbp698c0m9kfk24y";
     };
 
-    buildInputs = [ pkgs.gtk-sharp ];
+    buildInputs = [ pkgs.gtk-sharp-2_0 ];
 
     meta = {
       description = "A generic framework for creating extensible applications";

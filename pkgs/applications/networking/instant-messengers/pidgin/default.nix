@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, makeWrapper, pkgconfig, gtk, gtkspell, aspell
+{ stdenv, fetchurl, makeWrapper, pkgconfig, gtk2, gtkspell2, aspell
 , gst_all_1, startupnotification, gettext
 , perl, perlXMLParser, libxml2, nss, nspr, farstream, farsight2
 , libXScrnSaver, ncurses, avahi, dbus, dbus_glib, intltool, libidn
@@ -14,11 +14,11 @@
 let unwrapped = stdenv.mkDerivation rec {
   name = "pidgin-${version}";
   majorVersion = "2";
-  version = "${majorVersion}.11.0";
+  version = "${majorVersion}.12.0";
 
   src = fetchurl {
     url = "mirror://sourceforge/pidgin/${name}.tar.bz2";
-    sha256 = "0crkggjj6y07v1kdwil9vw532b0vrs6p33nmlvdkpnl60m2169pp";
+    sha256 = "1y5p2mq3bfw35b66jsafmbva0w5gg1k99y9z8fyp3jfksqv3agcc";
   };
 
   inherit nss ncurses;
@@ -28,7 +28,7 @@ let unwrapped = stdenv.mkDerivation rec {
   NIX_CFLAGS_COMPILE = "-I${gst_all_1.gst-plugins-base.dev}/include/gstreamer-1.0";
 
   buildInputs = [
-    gtkspell aspell startupnotification
+    gtkspell2 aspell startupnotification
     gst_all_1.gstreamer gst_all_1.gst-plugins-base gst_all_1.gst-plugins-good
     libxml2 nss nspr farstream farsight2
     libXScrnSaver ncurses python
@@ -40,7 +40,7 @@ let unwrapped = stdenv.mkDerivation rec {
   ++ (lib.optional (libgcrypt != null) libgcrypt);
 
   propagatedBuildInputs = [
-    pkgconfig gtk perl perlXMLParser gettext
+    pkgconfig gtk2 perl perlXMLParser gettext
   ];
 
   patches = [ ./pidgin-makefile.patch ./add-search-path.patch ];

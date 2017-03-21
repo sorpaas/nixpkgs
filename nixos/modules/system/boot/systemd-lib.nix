@@ -159,7 +159,13 @@ rec {
         fi
       done
 
-      # Created .wants and .requires symlinks from the wantedBy and
+      # Create service aliases from aliases option.
+      ${concatStrings (mapAttrsToList (name: unit:
+          concatMapStrings (name2: ''
+            ln -sfn '${name}' $out/'${name2}'
+          '') unit.aliases) units)}
+
+      # Create .wants and .requires symlinks from the wantedBy and
       # requiredBy options.
       ${concatStrings (mapAttrsToList (name: unit:
           concatMapStrings (name2: ''
@@ -182,7 +188,7 @@ rec {
         mkdir -p $out/getty.target.wants/
         ln -s ../autovt@tty1.service $out/getty.target.wants/
 
-        ln -s ../local-fs.target ../remote-fs.target ../network.target \
+        ln -s ../local-fs.target ../remote-fs.target \
         ../nss-lookup.target ../nss-user-lookup.target ../swap.target \
         $out/multi-user.target.wants/
       ''}

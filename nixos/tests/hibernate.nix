@@ -13,9 +13,7 @@ import ./make-test.nix (pkgs: {
 
       networking.firewall.allowedTCPPorts = [ 4444 ];
 
-      systemd.services.listener.serviceConfig.ExecStart = "${pkgs.netcat}/bin/nc -l -p 4444";
-
-      virtualisation.writableStore = false; # FIXME
+      systemd.services.listener.serviceConfig.ExecStart = "${pkgs.netcat}/bin/nc -l 4444";
     };
 
     probe = { config, lib, pkgs, ...}: {
@@ -38,7 +36,7 @@ import ./make-test.nix (pkgs: {
       $machine->waitForShutdown;
       $machine->start;
       $probe->waitForUnit("network.target");
-      $probe->waitUntilSucceeds("echo test | nc -c machine 4444");
+      $probe->waitUntilSucceeds("echo test | nc machine 4444");
     '';
 
 })

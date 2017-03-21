@@ -152,12 +152,12 @@ rec {
 
   cdt = buildEclipseUpdateSite rec {
     name = "cdt-${version}";
-    version = "8.8.0";
+    version = "9.0.1";
 
     src = fetchzip {
       stripRoot = false;
-      url = "https://www.eclipse.org/downloads/download.php?r=1&nf=1&file=/tools/cdt/releases/8.8/${name}.zip";
-      sha256 = "1i1m7g5128q21njgrkiw71y4vi4aqzz8xdd4iv80j3nsvhbv6cnm";
+      url = "https://www.eclipse.org/downloads/download.php?r=1&nf=1&file=/tools/cdt/releases/9.0/${name}.zip";
+      sha256 = "0vdx0j9ci533wnk7y17qjvjyqx38hlrdw67z6pi05vfv3r6ys39x";
     };
 
     meta = with stdenv.lib; {
@@ -171,12 +171,12 @@ rec {
 
   checkstyle = buildEclipseUpdateSite rec {
     name = "checkstyle-${version}";
-    version = "6.19.1.201607051943";
+    version = "7.3.0.201612142232";
 
     src = fetchzip {
       stripRoot = false;
-      url = "mirror://sourceforge/project/eclipse-cs/Eclipse%20Checkstyle%20Plug-in/6.19.1/net.sf.eclipsecs-updatesite_${version}.zip";
-      sha256 = "03aah57g0cgxym95p1wcj2h69xy3r9c0vv7js3gpmw1hx8w9sjsf";
+      url = "mirror://sourceforge/project/eclipse-cs/Eclipse%20Checkstyle%20Plug-in/7.3.0/net.sf.eclipsecs-updatesite_${version}.zip";
+      sha256 = "1mbiszwnakfmjx5mnh9h2rrp9jzizkmz89p8z4spq2m9kwy1lkqj";
     };
 
     meta = with stdenv.lib; {
@@ -322,12 +322,12 @@ rec {
 
   gnuarmeclipse = buildEclipseUpdateSite rec {
     name = "gnuarmeclipse-${version}";
-    version = "2.11.1-201512141335";
+    version = "3.1.1-201606210758";
 
     src = fetchzip {
       stripRoot = false;
       url = "https://github.com/gnuarmeclipse/plug-ins/releases/download/v${version}/ilg.gnuarmeclipse.repository-${version}.zip";
-      sha256 = "1ijvnahfw2wc860la7kj8b52z2sfm8k1yk62bl0d4lq60y3aycg9";
+      sha256 = "1g77jlhfa3csaxxps1z5lasrd9l2p5ajnddnq9ra5syw8ggkdc2h";
     };
 
     meta = with stdenv.lib; {
@@ -341,12 +341,12 @@ rec {
 
   jdt = buildEclipseUpdateSite rec {
     name = "jdt-${version}";
-    version = "4.6";
+    version = "4.6.2";
 
     src = fetchzip {
       stripRoot = false;
-      url = "https://www.eclipse.org/downloads/download.php?r=1&nf=1&file=/eclipse/downloads/drops4/R-4.6-201606061100/org.eclipse.jdt-4.6.zip";
-      sha256 = "0raz8d09fnnx19l012l5frca97qavfivvygn3mvsllcyskhqc5hg";
+      url = "https://www.eclipse.org/downloads/download.php?r=1&nf=1&file=/eclipse/downloads/drops4/R-4.6.2-201611241400/org.eclipse.jdt-4.6.2.zip";
+      sha256 = "1nnlrl05lh1hcsh14dlisnx0vwmj21agm4wia98rv0gl2gkp19n1";
     };
 
     meta = with stdenv.lib; {
@@ -388,7 +388,7 @@ rec {
     version = "4.4.1.201605041056";
 
     src = fetchzip {
-      url = "http://download.scala-ide.org/sdk/lithium/e44/scala211/stable/update-site.zip";
+      url = "http://download.scala-ide.org/sdk/lithium/e44/scala211/stable/base-20160504-1321.zip";
       sha256 = "13xgx2rwlll0l4bs0g6gyvrx5gcc0125vzn501fdj0wv2fqxn5lw";
     };
 
@@ -403,22 +403,45 @@ rec {
 
   testng = buildEclipsePlugin rec {
     name = "testng-${version}";
-    version = "6.9.11.201604020423";
+    version = "6.9.13.201609291640";
 
     srcFeature = fetchurl {
       url = "http://beust.com/eclipse-old/eclipse_${version}/features/org.testng.eclipse_${version}.jar";
-      sha256 = "1cp7f6f0525wqwjj4pyrp0q0ii7zcd5gwd5acaq9jjb13xgw8vav";
+      sha256 = "02wzcysl7ga3wnvnwp6asl8d77wgc547c5qqawixw94lw6fn1a15";
     };
 
     srcPlugin = fetchurl {
       url = "http://beust.com/eclipse-old/eclipse_${version}/plugins/org.testng.eclipse_${version}.jar";
-      sha256 = "04m07cdfw0isp27ykx6dbrlcdw33rxww7vnavanygxxnlpyvyas3";
+      sha256 = "1j4zw6392q3q6z3pcy803k3g0p220gk1x19fs99p0rmmdz83lc8d";
     };
 
     meta = with stdenv.lib; {
       homepage = http://testng.org/;
       description = "Eclipse plugin for the TestNG testing framework";
       license = licenses.asl20;
+      platforms = platforms.all;
+      maintainers = [ maintainers.rycee ];
+    };
+  };
+
+  yedit = buildEclipsePlugin rec {
+    name = "yedit-${version}";
+    version = "1.0.20.201509041456";
+
+    srcFeature = fetchurl {
+      url = "http://dadacoalition.org/yedit/features/org.dadacoalition.yedit.feature_${version}-RELEASE.jar";
+      sha256 = "0rps73y19gwlrdr8jjrg3rhcaaagghnmri8297inxc5q2dvg0mlk";
+    };
+
+    srcPlugin = fetchurl {
+      url = "http://dadacoalition.org/yedit/plugins/org.dadacoalition.yedit_${version}-RELEASE.jar";
+      sha256 = "1wpyw4z28ka60z36f8m71kz1giajcm26wb9bpv18sjiqwdgx9v0z";
+    };
+
+    meta = with stdenv.lib; {
+      homepage = https://github.com/oyse/yedit;
+      description = "A YAML editor plugin for Eclipse";
+      license = licenses.epl10;
       platforms = platforms.all;
       maintainers = [ maintainers.rycee ];
     };

@@ -1,4 +1,6 @@
-{ fetchurl, stdenv, python, alsaLib, libX11, mesa, SDL, lua5, zlib, bam, freetype }:
+{ fetchurl, stdenv, makeWrapper, python, alsaLib
+, libX11, mesa_glu, SDL, lua5, zlib, bam, freetype
+}:
 
 stdenv.mkDerivation rec {
   name = "teeworlds-0.6.4";
@@ -8,12 +10,15 @@ stdenv.mkDerivation rec {
     sha256 = "1qlqzp4wqh1vnip081lbsjnx5jj5m5y4msrcm8glbd80pfgd2qf2";
   };
 
-  # Note: Teeworlds requires Python 2.x to compile.  Python 3.0 will
-  # not work.
-  buildInputs = [ python alsaLib libX11 mesa SDL lua5 zlib bam freetype ];
+  # we always want to use system libs instead of these
+  postPatch = "rm -r other/{freetype,sdl}/{include,lib32,lib64}";
 
-  configurePhase = ''
-    bam release
+  buildInputs = [
+    python makeWrapper alsaLib libX11 mesa_glu SDL lua5 zlib bam freetype
+  ];
+
+  buildPhase = ''
+    bam -a -v release
   '';
 
   installPhase = ''
@@ -37,12 +42,8 @@ stdenv.mkDerivation rec {
     # that they can access the graphics and sounds.
     for program in $executables
     do
-      mv -v "$out/bin/$program" "$out/bin/.wrapped-$program"
-      cat > "$out/bin/$program" <<EOF
-#!/bin/sh
-cd "$out/share/${name}" && exec "$out/bin/.wrapped-$program" "\$@"
-EOF
-      chmod -v +x "$out/bin/$program"
+      wrapProgram $out/bin/$program \
+        --run "cd $out/share/${name}"
     done
 
     # Copy the documentation.
@@ -64,6 +65,5 @@ EOF
     license = "BSD-style, see `license.txt'";
     maintainers = with stdenv.lib.maintainers; [ astsmtl ];
     platforms = with stdenv.lib.platforms; linux;
-    broken = true;
   };
 }

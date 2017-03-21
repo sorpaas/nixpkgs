@@ -20,7 +20,6 @@ in
 
     services.xserver.desktopManager.enlightenment.enable = mkOption {
       default = false;
-      example = true;
       description = "Enable the Enlightenment desktop environment.";
     };
 
@@ -32,10 +31,10 @@ in
       e.efl e.enlightenment
       e.terminology e.econnman
       pkgs.xorg.xauth # used by kdesu
-      pkgs.gtk # To get GTK+'s themes.
+      pkgs.gtk2 # To get GTK+'s themes.
       pkgs.tango-icon-theme
       pkgs.shared_mime_info
-      pkgs.gnome.gnomeicontheme
+      pkgs.gnome2.gnomeicontheme
       pkgs.xorg.xcursorthemes
     ];
 
@@ -62,7 +61,7 @@ in
       '';
     }];
 
-    security.setuidPrograms = [ "e_freqset" ];
+    security.wrappers.e_freqset.source = "${e.enlightenment.out}/bin/e_freqset";
 
     environment.etc = singleton
       { source = "${pkgs.xkeyboard_config}/etc/X11/xkb";

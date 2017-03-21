@@ -1,7 +1,7 @@
 { stdenv, fetchurl, buildPythonApplication
 , python, cython, pkgconfig
 , xorg, gtk3, glib, pango, cairo, gdk_pixbuf, atk, pygobject3, pycairo, gobjectIntrospection
-, makeWrapper, xkbcomp, xorgserver, getopt, xauth, utillinux, which, fontsConf, xkeyboard_config
+, makeWrapper, xkbcomp, xorgserver, getopt, xauth, utillinux, which, fontsConf
 , ffmpeg, x264, libvpx, libwebp
 , libfakeXinerama }:
 
@@ -51,7 +51,6 @@ buildPythonApplication rec {
 
   postInstall = ''
     wrapProgram $out/bin/xpra \
-      --set XKB_BINDIR "${xkbcomp}/bin" \
       --set FONTCONFIG_FILE "${fontsConf}" \
       --prefix LD_LIBRARY_PATH : ${libfakeXinerama}/lib \
       --prefix PATH : ${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]}
@@ -62,7 +61,6 @@ buildPythonApplication rec {
 
   #TODO: replace postInstall with postFixup to avoid double wrapping of xpra; needs more work though
   #postFixup = ''
-  #  sed -i '2iexport XKB_BINDIR="${xkbcomp}/bin"' $out/bin/xpra
   #  sed -i '3iexport FONTCONFIG_FILE="${fontsConf}"' $out/bin/xpra
   #  sed -i '4iexport PATH=${stdenv.lib.makeBinPath [ getopt xorgserver xauth which utillinux ]}\${PATH:+:}\$PATH' $out/bin/xpra
   #'';

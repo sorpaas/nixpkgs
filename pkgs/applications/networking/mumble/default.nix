@@ -37,6 +37,7 @@ let
       "CONFIG+=no-bundled-speex"
     ] ++ optional (!speechdSupport) "CONFIG+=no-speechd"
       ++ optional jackSupport "CONFIG+=no-oss CONFIG+=no-alsa CONFIG+=jackaudio"
+      ++ optional (!iceSupport) "CONFIG+=no-ice"
       ++ (overrides.configureFlags or [ ]);
 
     preConfigure = ''
@@ -103,16 +104,16 @@ let
       "CONFIG+=no-client"
     ];
 
-    buildInputs = [ libcap ] ++ optional iceSupport [ zeroc_ice ];
+    buildInputs = [ libcap ] ++ optional iceSupport zeroc_ice;
   };
 
   stableSource = rec {
-    version = "1.2.16";
+    version = "1.2.19";
     qtVersion = 4;
 
     src = fetchurl {
       url = "https://github.com/mumble-voip/mumble/releases/download/${version}/mumble-${version}.tar.gz";
-      sha256 = "1ikswfm7zhwqcwcc1fwk0i9jjgqng49s0yilw50s34bgg1h3im7b";
+      sha256 = "1s60vaici3v034jzzi20x23hsj6mkjlc0glipjq4hffrg9qgnizh";
     };
   };
 

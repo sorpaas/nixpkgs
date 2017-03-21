@@ -2,18 +2,27 @@
 with lib;
 
 let
-  apparmorEnabled = config.security.apparmor.enable;
-  dnscrypt-proxy = pkgs.dnscrypt-proxy;
   cfg = config.services.dnscrypt-proxy;
+
+  stateDirectory = "/var/lib/dnscrypt-proxy";
 
   localAddress = "${cfg.localAddress}:${toString cfg.localPort}";
 
-  daemonArgs =
-    [ "--local-address=${localAddress}"
-      (optionalString cfg.tcpOnly "--tcp-only")
-      (optionalString cfg.ephemeralKeys "-E")
-    ]
-    ++ resolverArgs;
+  # The minisign public key used to sign the upstream resolver list.
+  # This is somewhat more flexible than preloading the key as an
+  # embedded string.
+  upstreamResolverListPubKey = pkgs.fetchurl {
+    url = https://raw.githubusercontent.com/jedisct1/dnscrypt-proxy/master/minisign.pub;
+    sha256 = "18lnp8qr6ghfc2sd46nn1rhcpr324fqlvgsp4zaigw396cd7vnnh";
+  };
+
+  # Internal flag indicating whether the upstream resolver list is used
+  useUpstreamResolverList = cfg.resolverList == null && cfg.customResolver == null;
+
+  resolverList =
+    if (cfg.resolverList != null)
+      then cfg.resolverList
+      else "${stateDirectory}/dnscrypt-resolvers.csv";
 
   resolverArgs = if (cfg.customResolver != null)
     then
@@ -22,9 +31,16 @@ let
         "--provider-key=${cfg.customResolver.key}"
       ]
     else
-      [ "--resolvers-list=${cfg.resolverList}"
-        "--resolver-name=${toString cfg.resolverName}"
+      [ "--resolvers-list=${resolverList}"
+        "--resolver-name=${cfg.resolverName}"
       ];
+
+  # The final command line arguments passed to the daemon
+  daemonArgs =
+    [ "--local-address=${localAddress}" ]
+    ++ optional cfg.tcpOnly "--tcp-only"
+    ++ optional cfg.ephemeralKeys "-E"
+    ++ resolverArgs;
 in
 
 {
@@ -35,7 +51,11 @@ in
 
   options = {
     services.dnscrypt-proxy = {
-      enable = mkEnableOption "DNSCrypt client proxy";
+      enable = mkOption {
+        default = false;
+        type = types.bool;
+        description = "Whether to enable the DNSCrypt client proxy";
+      };
 
       localAddress = mkOption {
         default = "127.0.0.1";
@@ -62,24 +82,20 @@ in
         default = "dnscrypt.eu-nl";
         type = types.nullOr types.str;
         description = ''
-          The name of the upstream DNSCrypt resolver to use, taken from the
-          list named in the <literal>resolverList</literal> option.
-          The default resolver is located in Holland, supports DNS security
-          extensions, and claims to not keep logs.
+          The name of the upstream DNSCrypt resolver to use, taken from
+          <filename>${resolverList}</filename>.  The default resolver is
+          located in Holland, supports DNS security extensions, and
+          <emphasis>claims</emphasis> to not keep logs.
         '';
       };
 
       resolverList = mkOption {
+        default = null;
+        type = types.nullOr types.path;
         description = ''
-          The list of upstream DNSCrypt resolvers. By default, we use the most
-          recent list published by upstream.
+          List of DNSCrypt resolvers.  The default is to use the list of
+          public resolvers provided by upstream.
         '';
-        example = literalExample "${pkgs.dnscrypt-proxy}/share/dnscrypt-proxy/dnscrypt-resolvers.csv";
-        default = pkgs.fetchurl {
-          url = https://raw.githubusercontent.com/jedisct1/dnscrypt-proxy/master/dnscrypt-resolvers.csv;
-          sha256 = "1i9wzw4zl052h5nyp28bwl8d66cgj0awvjhw5wgwz0warkjl1g8g";
-        };
-        defaultText = "pkgs.fetchurl { url = ...; sha256 = ...; }";
       };
 
       customResolver = mkOption {
@@ -104,7 +120,7 @@ in
           name = mkOption {
             type = types.str;
             description = "Fully qualified domain name";
-            example = "2.dnscrypt-cert.opendns.com";
+            example = "2.dnscrypt-cert.example.com";
           };
 
           key = mkOption {
@@ -138,16 +154,59 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-
+  config = mkIf cfg.enable (mkMerge [{
     assertions = [
       { assertion = (cfg.customResolver != null) || (cfg.resolverName != null);
         message   = "please configure upstream DNSCrypt resolver";
       }
     ];
 
-    security.apparmor.profiles = mkIf apparmorEnabled (singleton (pkgs.writeText "apparmor-dnscrypt-proxy" ''
-      ${dnscrypt-proxy}/bin/dnscrypt-proxy {
+    users.users.dnscrypt-proxy = {
+      description = "dnscrypt-proxy daemon user";
+      isSystemUser = true;
+      group = "dnscrypt-proxy";
+    };
+    users.groups.dnscrypt-proxy = {};
+
+    systemd.sockets.dnscrypt-proxy = {
+      description = "dnscrypt-proxy listening socket";
+      documentation = [ "man:dnscrypt-proxy(8)" ];
+
+      wantedBy = [ "sockets.target" ];
+
+      socketConfig = {
+        ListenStream = localAddress;
+        ListenDatagram = localAddress;
+      };
+    };
+
+    systemd.services.dnscrypt-proxy = {
+      description = "dnscrypt-proxy daemon";
+      documentation = [ "man:dnscrypt-proxy(8)" ];
+
+      before = [ "nss-lookup.target" ];
+      after = [ "network.target" ];
+      requires = [ "dnscrypt-proxy.socket "];
+
+      serviceConfig = {
+        NonBlocking = "true";
+        ExecStart = "${pkgs.dnscrypt-proxy}/bin/dnscrypt-proxy ${toString daemonArgs}";
+        ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+
+        User = "dnscrypt-proxy";
+
+        PrivateTmp = true;
+        PrivateDevices = true;
+        ProtectHome = true;
+      };
+    };
+    }
+
+    (mkIf config.security.apparmor.enable {
+    systemd.services.dnscrypt-proxy.after = [ "apparmor.service" ];
+
+    security.apparmor.profiles = singleton (pkgs.writeText "apparmor-dnscrypt-proxy" ''
+      ${pkgs.dnscrypt-proxy}/bin/dnscrypt-proxy {
         /dev/null rw,
         /dev/urandom r,
 
@@ -171,45 +230,82 @@ in
         ${getLib pkgs.libgpgerror}/lib/libgpg-error.so.* mr,
         ${getLib pkgs.libcap}/lib/libcap.so.* mr,
         ${getLib pkgs.lz4}/lib/liblz4.so.* mr,
-        ${getLib pkgs.attr}/lib/libattr.so.* mr,
+        ${getLib pkgs.attr}/lib/libattr.so.* mr, # */
 
-        ${cfg.resolverList} r,
+        ${resolverList} r,
       }
-    ''));
+    '');
+    })
 
-    users.users.dnscrypt-proxy = {
-      description = "dnscrypt-proxy daemon user";
-      isSystemUser = true;
-      group = "dnscrypt-proxy";
-    };
-    users.groups.dnscrypt-proxy = {};
+    (mkIf useUpstreamResolverList {
+    systemd.services.init-dnscrypt-proxy-statedir = {
+      description = "Initialize dnscrypt-proxy state directory";
 
-    systemd.sockets.dnscrypt-proxy = {
-      description = "dnscrypt-proxy listening socket";
-      socketConfig = {
-        ListenStream = "${localAddress}";
-        ListenDatagram = "${localAddress}";
-      };
-      wantedBy = [ "sockets.target" ];
-    };
+      wantedBy = [ "dnscrypt-proxy.service" ];
+      before = [ "dnscrypt-proxy.service" ];
 
-    systemd.services.dnscrypt-proxy = {
-      description = "dnscrypt-proxy daemon";
-
-      after = [ "network.target" ] ++ optional apparmorEnabled "apparmor.service";
-      requires = [ "dnscrypt-proxy.socket "] ++ optional apparmorEnabled "apparmor.service";
+      script = ''
+        mkdir -pv ${stateDirectory}
+        chown -c dnscrypt-proxy:dnscrypt-proxy ${stateDirectory}
+        cp -uv \
+          ${pkgs.dnscrypt-proxy}/share/dnscrypt-proxy/dnscrypt-resolvers.csv \
+          ${stateDirectory}
+      '';
 
       serviceConfig = {
-        Type = "simple";
-        NonBlocking = "true";
-        ExecStart = "${dnscrypt-proxy}/bin/dnscrypt-proxy ${toString daemonArgs}";
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+    };
 
-        User = "dnscrypt-proxy";
+    systemd.services.update-dnscrypt-resolvers = {
+      description = "Update list of DNSCrypt resolvers";
 
+      requires = [ "init-dnscrypt-proxy-statedir.service" ];
+      after = [ "init-dnscrypt-proxy-statedir.service" ];
+
+      path = with pkgs; [ curl diffutils dnscrypt-proxy minisign ];
+      script = ''
+        cd ${stateDirectory}
+        domain=download.dnscrypt.org
+        get="curl -fSs --resolve $domain:443:$(hostip -r 8.8.8.8 $domain | head -1)"
+        $get -o dnscrypt-resolvers.csv.tmp \
+          https://$domain/dnscrypt-proxy/dnscrypt-resolvers.csv
+        $get -o dnscrypt-resolvers.csv.minisig.tmp \
+          https://$domain/dnscrypt-proxy/dnscrypt-resolvers.csv.minisig
+        mv dnscrypt-resolvers.csv.minisig{.tmp,}
+        minisign -q -V -p ${upstreamResolverListPubKey} \
+          -m dnscrypt-resolvers.csv.tmp -x dnscrypt-resolvers.csv.minisig
+        [[ -f dnscrypt-resolvers.csv ]] && mv dnscrypt-resolvers.csv{,.old}
+        mv dnscrypt-resolvers.csv{.tmp,}
+        if cmp dnscrypt-resolvers.csv{,.old} ; then
+          echo "no change"
+        else
+          echo "resolver list updated"
+        fi
+      '';
+
+      serviceConfig = {
         PrivateTmp = true;
         PrivateDevices = true;
         ProtectHome = true;
+        ProtectSystem = "strict";
+        ReadWritePaths = "${dirOf stateDirectory} ${stateDirectory}";
+        SystemCallFilter = "~@mount";
       };
     };
-  };
+
+    systemd.timers.update-dnscrypt-resolvers = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "5min";
+        OnUnitActiveSec = "6h";
+      };
+    };
+    })
+    ]);
+
+  imports = [
+    (mkRenamedOptionModule [ "services" "dnscrypt-proxy" "port" ] [ "services" "dnscrypt-proxy" "localPort" ])
+  ];
 }

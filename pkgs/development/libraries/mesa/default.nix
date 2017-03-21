@@ -1,9 +1,10 @@
 { stdenv, fetchurl, fetchpatch
 , pkgconfig, intltool, autoreconfHook, substituteAll
-, file, expat, libdrm, xorg, wayland, systemd
+, file, expat, libdrm, xorg, wayland, openssl
 , llvmPackages, libffi, libomxil-bellagio, libva
-, libelf, libvdpau, python
+, libelf, libvdpau, python2
 , grsecEnabled ? false
+, enableRadv ? false
 , enableTextureFloats ? false # Texture floats are patented, see docs/patents.txt
 }:
 
@@ -26,7 +27,7 @@ if ! lists.elem stdenv.system platforms.mesaPlatforms then
 else
 
 let
-  version = "12.0.6";
+  version = "17.0.1";
   branch  = head (splitString "." version);
   driverLink = "/run/opengl-driver" + optionalString stdenv.isi686 "-32";
 in
@@ -36,11 +37,12 @@ stdenv.mkDerivation {
 
   src =  fetchurl {
     urls = [
+      "ftp://ftp.freedesktop.org/pub/mesa/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/older-versions/${branch}.x/${version}/mesa-${version}.tar.xz"
       "https://launchpad.net/mesa/trunk/${version}/+download/mesa-${version}.tar.xz"
     ];
-    sha256 = "7d6da9744c1022a4c2ab6ad01a206984d00443fb691568011d01b3dd97e36448";
+    sha256 = "96fd70ef5f31d276a17e424e7e1bb79447ccbbe822b56844213ef932e7ad1b0c";
   };
 
   prePatch = "patchShebangs .";
@@ -51,16 +53,7 @@ stdenv.mkDerivation {
   patches = [
     ./glx_ro_text_segm.patch # fix for grsecurity/PaX
     ./symlink-drivers.patch
-  ] ++ optional stdenv.isLinux
-      (substituteAll {
-        src = ./dlopen-absolute-paths.diff;
-        libudev = systemd.lib;
-      });
-
-  postPatch = ''
-    substituteInPlace src/egl/main/egldriver.c \
-      --replace _EGL_DRIVER_SEARCH_DIR '"${driverLink}"'
-  '';
+  ];
 
   outputs = [ "out" "dev" "drivers" "osmesa" ];
 
@@ -71,11 +64,14 @@ stdenv.mkDerivation {
     "--with-dri-driverdir=$(drivers)/lib/dri"
     "--with-dri-searchpath=${driverLink}/lib/dri"
     "--with-egl-platforms=x11,wayland,drm"
-    (optionalString (stdenv.system != "armv7l-linux")
-      "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,freedreno,swrast")
-    (optionalString (stdenv.system != "armv7l-linux")
-      "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast")
-
+  ] ++ (if stdenv.isArm || stdenv.isAarch64 then [
+      "--with-gallium-drivers=nouveau,freedreno,vc4,etnaviv,swrast"
+      "--with-dri-drivers=nouveau,swrast"
+  ] else [
+      "--with-gallium-drivers=svga,i915,ilo,r300,r600,radeonsi,nouveau,swrast"
+      "--with-dri-drivers=i915,i965,nouveau,radeon,r200,swrast"
+      ("--with-vulkan-drivers=intel" + optionalString enableRadv ",radeon")
+  ]) ++ [
     (enableFeature enableTextureFloats "texture-float")
     (enableFeature grsecEnabled "glx-rts")
     (enableFeature stdenv.isLinux "dri3")
@@ -112,9 +108,9 @@ stdenv.mkDerivation {
     glproto dri2proto dri3proto presentproto
     libX11 libXext libxcb libXt libXfixes libxshmfence
     libffi wayland libvdpau libelf libXvMC
-    libomxil-bellagio libva libpthreadstubs
-    (python.withPackages (ps: [ ps.Mako ]))
-  ] ++ optional stdenv.isLinux systemd;
+    libomxil-bellagio libva libpthreadstubs openssl/*or another sha1 provider*/
+    (python2.withPackages (ps: [ ps.Mako ]))
+  ];
 
 
   enableParallelBuilding = true;
@@ -134,8 +130,10 @@ stdenv.mkDerivation {
       $out/lib/vdpau         \
       $out/lib/bellagio      \
       $out/lib/libxatracker* \
+      $out/lib/libvulkan_*
 
-    mv $out/lib/dri/* $drivers/lib/dri
+    mv $out/lib/dri/* $drivers/lib/dri # */
+    rmdir "$out/lib/dri"
 
     # move libOSMesa to $osmesa, as it's relatively big
     mkdir -p {$osmesa,$drivers}/lib/
@@ -146,6 +144,14 @@ stdenv.mkDerivation {
 
     # set the default search path for DRI drivers; used e.g. by X server
     substituteInPlace "$dev/lib/pkgconfig/dri.pc" --replace '$(drivers)' "${driverLink}"
+  '' + optionalString (!(stdenv.isArm || stdenv.isAarch64)) ''
+    # move share/vulkan/icd.d/
+    mv $out/share/ $drivers/
+    # Update search path used by Vulkan (it's pointing to $out but
+    # drivers are in $drivers)
+    for js in $drivers/share/vulkan/icd.d/*.json; do
+      substituteInPlace "$js" --replace "$out" "$drivers"
+    done
   '';
 
   # TODO:

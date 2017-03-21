@@ -16,25 +16,29 @@ let
   configVersion = "2.11"; # bump whenever fontconfig breaks compatibility with older configurations
 in
 stdenv.mkDerivation rec {
-  name = "fontconfig-2.11.1";
+  name = "fontconfig-2.12.1";
 
   src = fetchurl {
     url = "http://fontconfig.org/release/${name}.tar.bz2";
-    sha256 = "16baa4g5lswkyjlyf1h5lwc0zjap7c4d8grw79349a5w6dsl8qnw";
+    sha256 = "1wy7svvp7df6bjpg1m5vizb3ngd7rhb20vpclv3x3qa71khs6jdl";
   };
 
   patches = [
-    (fetchpatch ({
-        url = "http://cgit.freedesktop.org/fontconfig/patch/?id=f44157c809d280e2a0ce87fb078fc4b278d24a67";
-        sha256 = "19s5irclg4irj2yxd7xw9yikbazs9263px8qbv4r21asw06nfalv";
-        name = "fc-cache-bug-77252.patch";
-      }
-    ))
     (substituteAll {
       src = ./config-compat.patch;
       inherit configVersion;
     })
+    (fetchpatch {
+      name = "glibc-2.25.diff";
+      url = "https://cgit.freedesktop.org/fontconfig/patch/?id=1ab5258f7c";
+      sha256 = "0x2a4qx51j3gqcp1kp4lisdzmhrkw1zw0r851d82ksgjlc0vkbaz";
+    })
   ];
+  # additionally required for the glibc-2.25 patch; avoid requiring gperf
+  postPatch = ''
+    sed s/CHAR_WIDTH/CHARWIDTH/g -i src/fcobjshash.{h,gperf}
+    touch src/*
+  '';
 
   outputs = [ "bin" "dev" "lib" "out" ]; # $out contains all the config
 

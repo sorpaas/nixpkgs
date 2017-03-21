@@ -8,9 +8,6 @@ use Fcntl ':flock';
 use Getopt::Long qw(:config gnu_getopt);
 use Cwd 'abs_path';
 
-my $nsenter = "@utillinux@/bin/nsenter";
-my $su = "@su@";
-
 # Ensure a consistent umask.
 umask 0022;
 
@@ -19,7 +16,7 @@ umask 0022;
 sub showHelp {
     print <<EOF;
 Usage: nixos-container list
-       nixos-container create <container-name> [--nixos-path <path>] [--system-path <path>] [--config-file <path>] [--config <string>] [--ensure-unique-name] [--auto-start]
+       nixos-container create <container-name> [--nixos-path <path>] [--system-path <path>] [--config-file <path>] [--config <string>] [--ensure-unique-name] [--auto-start] [--bridge <iface>] [--port <port>]
        nixos-container destroy <container-name>
        nixos-container start <container-name>
        nixos-container stop <container-name>
@@ -39,6 +36,8 @@ my $systemPath;
 my $nixosPath;
 my $ensureUniqueName = 0;
 my $autoStart = 0;
+my $bridge;
+my $port;
 my $extraConfig;
 my $signal;
 my $configFile;
@@ -47,6 +46,8 @@ GetOptions(
     "help" => sub { showHelp() },
     "ensure-unique-name" => \$ensureUniqueName,
     "auto-start" => \$autoStart,
+    "bridge=s" => \$bridge,
+    "port=s" => \$port,
     "system-path=s" => \$systemPath,
     "signal=s" => \$signal,
     "nixos-path=s" => \$nixosPath,
@@ -156,6 +157,8 @@ if ($action eq "create") {
     push @conf, "PRIVATE_NETWORK=1\n";
     push @conf, "HOST_ADDRESS=$hostAddress\n";
     push @conf, "LOCAL_ADDRESS=$localAddress\n";
+    push @conf, "HOST_BRIDGE=$bridge\n";
+    push @conf, "HOST_PORT=$port\n";
     push @conf, "AUTO_START=$autoStart\n";
     write_file($confFile, \@conf);
 
@@ -220,22 +223,6 @@ sub stopContainer {
         or die "$0: failed to stop container\n";
 }
 
-# Return the PID of the init process of the container.
-sub getLeader {
-    my $s = `machinectl show "$containerName" -p Leader`;
-    chomp $s;
-    $s =~ /^Leader=(\d+)$/ or die "unable to get container's main PID\n";
-    return int($1);
-}
-
-# Run a command in the container.
-sub runInContainer {
-    my @args = @_;
-    my $leader = getLeader;
-    exec($nsenter, "-t", $leader, "-m", "-u", "-i", "-n", "-p", "--", @args);
-    die "cannot run ‘nsenter’: $!\n";
-}
-
 # Remove a directory while recursively unmounting all mounted filesystems within
 # that directory and unmounting/removing that directory afterwards as well.
 #
@@ -261,6 +248,7 @@ if ($action eq "destroy") {
 
     safeRemoveTree($profileDir) if -e $profileDir;
     safeRemoveTree($gcRootsDir) if -e $gcRootsDir;
+    system("chattr", "-i", "$root/var/empty") if -e $root;
     safeRemoveTree($root) if -e $root;
     unlink($confFile) or die;
 }
@@ -309,14 +297,14 @@ elsif ($action eq "login") {
 }
 
 elsif ($action eq "root-login") {
-    runInContainer("@su@", "root", "-l");
+    exec("machinectl", "shell", $containerName, "/bin/sh", "-l");
 }
 
 elsif ($action eq "run") {
     shift @ARGV; shift @ARGV;
     # Escape command.
     my $s = join(' ', map { s/'/'\\''/g; "'$_'" } @ARGV);
-    runInContainer("@su@", "root", "-l", "-c", "exec " . $s);
+    exec("machinectl", "--quiet", "shell", $containerName, "/bin/sh", "-l", "-c", $s);
 }
 
 elsif ($action eq "show-ip") {

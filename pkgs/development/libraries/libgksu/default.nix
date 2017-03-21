@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, wrapGAppsHook, gtk, gnome, gnome3,
+{ stdenv, fetchurl, pkgconfig, wrapGAppsHook, gtk2, gnome2, gnome3,
   libstartup_notification, libgtop, perl, perlXMLParser,
   autoreconfHook, intltool, gtk_doc, docbook_xsl, xauth, sudo
 }:
@@ -18,8 +18,8 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    gtk gnome.GConf libstartup_notification
-    gnome3.libgnome_keyring libgtop gnome.libglade perl perlXMLParser
+    gtk2 gnome2.GConf libstartup_notification
+    gnome3.libgnome_keyring libgtop gnome2.libglade perl perlXMLParser
   ];
 
   enableParallelBuilding = true;
@@ -57,8 +57,8 @@ stdenv.mkDerivation rec {
 
     # Fix some binary paths
     sed -i -e 's|/usr/bin/xauth|${xauth}/bin/xauth|g' libgksu/gksu-run-helper.c libgksu/libgksu.c
-    sed -i -e 's|/usr/bin/sudo|/var/setuid-wrappers/sudo|g' libgksu/libgksu.c
-    sed -i -e 's|/bin/su\([^d]\)|/var/setuid-wrappers/su\1|g' libgksu/libgksu.c
+    sed -i -e 's|/usr/bin/sudo|/run/wrappers/bin/sudo|g' libgksu/libgksu.c
+    sed -i -e 's|/bin/su\([^d]\)|/run/wrappers/bin/su\1|g' libgksu/libgksu.c
 
     touch NEWS README
   '';

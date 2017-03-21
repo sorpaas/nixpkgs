@@ -1,8 +1,8 @@
 { stdenv, lib, makeDesktopItem, makeWrapper, config
 
 ## various stuff that can be plugged in
-, gnash, flashplayer, hal-flash
-, MPlayerPlugin, gecko_mediaplayer, ffmpeg, gst_all, xorg, libpulseaudio, libcanberra
+, flashplayer, hal-flash
+, MPlayerPlugin, ffmpeg, gst_all, xorg, libpulseaudio, libcanberra_gtk2
 , supportsJDK, jrePlugin, icedtea_web
 , trezor-bridge, bluejeans, djview4, adobe-reader
 , google_talk_plugin, fribid, gnome3/*.gnome_shell*/
@@ -23,20 +23,16 @@ browser:
 let
   cfg = stdenv.lib.attrByPath [ browserName ] {} config;
   enableAdobeFlash = cfg.enableAdobeFlash or false;
-  enableGnash = cfg.enableGnash or false;
   ffmpegSupport = browser.ffmpegSupport or false;
   jre = cfg.jre or false;
   icedtea = cfg.icedtea or false;
 
   plugins =
-     assert !(enableGnash && enableAdobeFlash);
      assert !(jre && icedtea);
      ([ ]
-      ++ lib.optional enableGnash gnash
       ++ lib.optional enableAdobeFlash flashplayer
       ++ lib.optional (cfg.enableDjvu or false) (djview4)
       ++ lib.optional (cfg.enableMPlayer or false) (MPlayerPlugin browser)
-      ++ lib.optional (cfg.enableGeckoMediaPlayer or false) gecko_mediaplayer
       ++ lib.optional (supportsJDK && jre && jrePlugin ? mozillaPlugin) jrePlugin
       ++ lib.optional icedtea icedtea_web
       ++ lib.optional (cfg.enableGoogleTalkPlugin or false) google_talk_plugin
@@ -54,7 +50,7 @@ let
          ++ lib.optional (enableAdobeFlash && (cfg.enableAdobeFlashDRM or false)) hal-flash
          ++ lib.optional (config.pulseaudio or false) libpulseaudio;
   gst-plugins = with gst_all; [ gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-ffmpeg ];
-  gtk_modules = [ libcanberra ];
+  gtk_modules = [ libcanberra_gtk2 ];
 
 in
 stdenv.mkDerivation {

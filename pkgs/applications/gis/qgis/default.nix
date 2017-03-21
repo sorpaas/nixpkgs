@@ -1,16 +1,16 @@
 { stdenv, fetchurl, gdal, cmake, qt4, flex, bison, proj, geos, xlibsWrapper, sqlite, gsl
-, qwt, fcgi, pythonPackages, libspatialindex, libspatialite, qscintilla, postgresql, makeWrapper
+, qwt, fcgi, python2Packages, libspatialindex, libspatialite, qscintilla, postgresql, makeWrapper
 , qjson, qca2, txt2tags, openssl
 , withGrass ? false, grass
 }:
 
 stdenv.mkDerivation rec {
-  name = "qgis-2.16.2";
+  name = "qgis-2.18.4";
 
   buildInputs = [ gdal qt4 flex openssl bison proj geos xlibsWrapper sqlite gsl qwt qscintilla
     fcgi libspatialindex libspatialite postgresql qjson qca2 txt2tags ] ++
     (stdenv.lib.optional withGrass grass) ++
-    (with pythonPackages; [ numpy psycopg2 requests2 pythonPackages.qscintilla sip ]);
+    (with python2Packages; [ numpy psycopg2 requests2 python2Packages.qscintilla sip ]);
 
   nativeBuildInputs = [ cmake makeWrapper ];
 
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://qgis.org/downloads/${name}.tar.bz2";
-    sha256 = "0dll8klz0qfba4c1y7mp9k4y4azlay0sypvryicggllk1hna4w0n";
+    sha256 = "1s264pahxpn0215xmzm8q2khr5xspipd7bbvxah5kj339kyjfy3k";
   };
 
   cmakeFlags = stdenv.lib.optional withGrass "-DGRASS_PREFIX7=${grass}/${grass.name}";

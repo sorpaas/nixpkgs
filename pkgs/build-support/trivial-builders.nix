@@ -1,15 +1,23 @@
-{ lib, stdenv, lndir }:
+{ lib, stdenv, stdenvNoCC, lndir }:
+
+let
+
+  runCommand' = stdenv: name: env: buildCommand:
+    stdenv.mkDerivation ({
+      inherit name buildCommand;
+      passAsFile = [ "buildCommand" ];
+    } // env);
+
+in
 
 rec {
 
   # Run the shell command `buildCommand' to produce a store path named
   # `name'.  The attributes in `env' are added to the environment
   # prior to running the command.
-  runCommand = name: env: buildCommand:
-    stdenv.mkDerivation ({
-      inherit name buildCommand;
-      passAsFile = [ "buildCommand" ];
-    } // env);
+  runCommand = runCommandNoCC;
+  runCommandNoCC = runCommand' stdenvNoCC;
+  runCommandCC = runCommand' stdenv;
 
 
   # Create a single file.
@@ -100,8 +108,9 @@ rec {
 
   # Quickly create a set of symlinks to derivations.
   # entries is a list of attribute sets like { name = "name" ; path = "/nix/store/..."; }
-  linkFarm = name: entries: runCommand name {} ("mkdir -p $out; cd $out; \n" +
-    (lib.concatMapStrings (x: "ln -s '${x.path}' '${x.name}';\n") entries));
+  linkFarm = name: entries: runCommand name { preferLocalBuild = true; }
+    ("mkdir -p $out; cd $out; \n" +
+      (lib.concatMapStrings (x: "ln -s '${x.path}' '${x.name}';\n") entries));
 
 
   # Print an error message if the file with the specified name and

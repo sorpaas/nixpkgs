@@ -1,20 +1,26 @@
-{ stdenv, fetchsvn, pkgconfig, autoreconfHook, gnutls33, freetype
+{ stdenv, fetchFromGitHub, pkgconfig, autoreconfHook, gnutls, freetype
 , SDL, SDL_gfx, SDL_ttf, liblo, libxml2, alsaLib, libjack2, libvorbis
 , libSM, libsndfile, libogg
 }:
 
-stdenv.mkDerivation {
-  name = "freewheeling-100";
+stdenv.mkDerivation rec {
+  name = "freewheeling-${version}";
+  version = "2016-11-15";
 
-  src = fetchsvn {
-    url = svn://svn.code.sf.net/p/freewheeling/code;
-    rev = 100;
-    sha256 = "1m6z7p93xyha25qma9bazpzbp04pqdv5h3yrv6851775xsyvzksv";
+  src = fetchFromGitHub {
+    owner = "free-wheeling";
+    repo = "freewheeling";
+    rev = "05ef3bf150fa6ba1b1d437b1fd70ef363289742f";
+    sha256 = "19plf7r0sq4271ln5bya95mp4i1j30x8hsxxga2kla27z953n9ih";
   };
 
+  nativeBuildInputs = [ pkgconfig autoreconfHook ];
   buildInputs = [
-    pkgconfig autoreconfHook gnutls33 freetype SDL SDL_gfx SDL_ttf
+    freetype SDL SDL_gfx SDL_ttf
     liblo libxml2 libjack2 alsaLib libvorbis libsndfile libogg libSM
+    (gnutls.overrideAttrs (oldAttrs: {
+      configureFlags = oldAttrs.configureFlags ++ [ "--enable-openssl-compatibility" ];
+    }))
   ];
 
   patches = [ ./am_path_sdl.patch ./xml.patch ];
@@ -35,7 +41,6 @@ stdenv.mkDerivation {
         software, released under the GNU GPL license.
     '' ;
 
-    version = "r100";
     homepage = "http://freewheeling.sourceforge.net";
     license = stdenv.lib.licenses.gpl2;
     maintainers = [ stdenv.lib.maintainers.sepi ];

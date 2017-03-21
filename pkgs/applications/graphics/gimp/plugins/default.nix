@@ -5,7 +5,7 @@
 
 { pkgs, gimp }:
 let
-  inherit (pkgs) stdenv fetchurl pkgconfig glib;
+  inherit (pkgs) stdenv fetchurl pkgconfig glib fetchFromGitHub;
   inherit (gimp) targetPluginDir targetScriptDir;
 
   pluginDerivation = a: stdenv.mkDerivation ({
@@ -117,6 +117,25 @@ rec {
     ";
   };
 
+  resynthesizer2 = pluginDerivation {
+    /* menu:
+      Filters/Map/Resynthesize
+      Filters/Enhance/Smart enlarge
+      Filters/Enhance/Smart sharpen
+      Filters/Enhance/Smart remove selection
+    */
+    name = "resynthesizer-2.0.1";
+    buildInputs = [ gimp pkgs.fftw pkgs.autoreconfHook ]
+      ++ gimp.nativeBuildInputs;
+    makeFlags = "GIMP_LIBDIR=$out/lib/gimp/2.0/";
+    src = fetchFromGitHub {
+      owner = "bootchk";
+      repo = "resynthesizer";
+      rev = "2.0.1";
+      sha256 = "1d214s0jsqxz83l9dd8vhnz3siw9fyw7xdhhir25ra7jiwxc99hd";
+    };
+  };
+
   texturize = pluginDerivation {
     name = "texturize-2.1";
     buildInputs = [ gimp ] ++ gimp.nativeBuildInputs;
@@ -159,31 +178,16 @@ rec {
 
   gmic =
     pluginDerivation rec {
-      name = "gmic-1.6.5.0";
+      inherit (pkgs.gmic) name src meta;
 
-      buildInputs = [pkgconfig pkgs.fftw pkgs.opencv gimp] ++ gimp.nativeBuildInputs;
-
-      src = fetchurl {
-        url = http://gmic.eu/files/source/gmic_1.6.5.0.tar.gz;
-        sha256 = "1vb6zm5zpqfnzxjvb9yfvczaqacm55rf010ib0yk9f28b17qrjgb";
-      };
+      nativeBuildInputs = [ pkgconfig ];
+      buildInputs = [ pkgs.fftw pkgs.opencv gimp ] ++ gimp.nativeBuildInputs;
 
       sourceRoot = "${name}/src";
 
       buildFlags = "gimp";
 
       installPhase = "installPlugins gmic_gimp";
-
-      meta = {
-        description = "Script language for image processing which comes with its open-source interpreter";
-        homepage = http://gmic.eu/gimp.shtml;
-        license = stdenv.lib.licenses.cecill20;
-        /*
-        The purpose of this Free Software license agreement is to grant users
-        the right to modify and redistribute the software governed by this
-        license within the framework of an open source distribution model.
-        [ ... ] */
-      };
   };
 
   # this is more than a gimp plugin !
@@ -214,21 +218,20 @@ rec {
   };
 
   gimplensfun = pluginDerivation rec {
-    name = "gimplensfun-0.1.1";
+    version = "0.2.4";
+    name = "gimplensfun-${version}";
 
-    src = fetchurl {
-      url = "http://lensfun.sebastiankraft.net/${name}.tar.gz";
-      sha256 = "0kr296n4k7gsjqg1abmvpysxi88iq5wrzdpcg7vm7l1ifvbs972q";
+    src = fetchFromGitHub {
+      owner = "seebk";
+      repo = "GIMP-Lensfun";
+      rev = version;
+      sha256 = "0zlmp9v732qmzj083mnk5z421s57mnckmpjhiw890wmmwzj2lhxz";
     };
-
-    patchPhase = '' sed -i Makefile -e's|/usr/bin/g++|g++|' '';
 
     buildInputs = [ gimp pkgconfig glib gimp.gtk pkgs.lensfun pkgs.exiv2 ];
 
     installPhase = "
-      installPlugins gimplensfun
-      mkdir -p $out/bin
-      cp gimplensfun $out/bin
+      installPlugins gimp-lensfun
     ";
 
     meta = {
