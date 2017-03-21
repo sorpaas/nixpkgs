@@ -13,7 +13,6 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig makeWrapper ];
   buildInputs = [ libpipeline db groff ];
-  troff="${groff}/bin/groff";
 
   postPatch = ''
     substituteInPlace src/man_db.conf.in \

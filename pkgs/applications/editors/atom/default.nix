@@ -21,9 +21,7 @@ stdenv.mkDerivation rec {
     rm -r $out/share/lintian
     rm -r $out/usr/
     wrapProgram $out/bin/atom \
-      --prefix "PATH" : "${gvfs}/bin" \
-      --prefix LD_PRELOAD : ${stdenv.lib.makeLibraryPath [ libXScrnSaver ]}/libXss.so.1 \
-      --prefix LD_PRELOAD : ${stdenv.lib.makeLibraryPath [ libxkbfile ]}/libxkbfile.so.1
+      --prefix "PATH" : "${gvfs}/bin"
 
     fixupPhase
 

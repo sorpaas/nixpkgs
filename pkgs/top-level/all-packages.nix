@@ -149,17 +149,7 @@ with pkgs;
 
   fetchMavenArtifact = callPackage ../build-support/fetchmavenartifact { };
 
-  packer = callPackage ../development/tools/packer {
-    # Go 1.7 changed the linker flag format
-    buildGoPackage = buildGo16Package;
-    gotools = self.gotools.override {
-      buildGoPackage = buildGo16Package;
-      go = self.go_1_6;
-    };
-    gox = self.gox.override {
-      buildGoPackage = buildGo16Package;
-    };
-  };
+  packer = callPackage ../development/tools/packer { };
 
   fetchpatch = callPackage ../build-support/fetchpatch { };
 
@@ -3636,8 +3626,6 @@ with pkgs;
   rtmpdump_gnutls = rtmpdump.override { gnutlsSupport = true; opensslSupport = false; };
 
   reaverwps = callPackage ../tools/networking/reaver-wps {};
-  
-  reaverwps-t6x = callPackage ../tools/networking/reaver-wps-t6x {};
 
   reaverwps-t6x = callPackage ../tools/networking/reaver-wps-t6x {};
 
@@ -4812,6 +4800,7 @@ with pkgs;
     coq = coq_8_6;
   });
 
+
   # Users installing via `nix-env` will likely be using the REPL,
   # which has a hard dependency on Z3, so make sure it is available.
   cryptol = haskellPackages.cryptol.overrideDerivation (oldAttrs: {
@@ -5119,7 +5108,7 @@ with pkgs;
 
   # Haskell and GHC
 
-  haskell = callPackage ./haskell-packages.nix { inherit crossSystem; };
+  haskell = callPackage ./haskell-packages.nix { };
 
   haskellPackages = haskell.packages.ghc802.override {
     overrides = config.haskellPackageOverrides or (self: super: {});
@@ -6459,8 +6448,6 @@ with pkgs;
   github-release = callPackage ../development/tools/github/github-release { };
 
   global = callPackage ../development/tools/misc/global { };
-
-  gn = callPackage ../development/tools/build-managers/gn { };
 
   gnome_doc_utils = callPackage ../development/tools/documentation/gnome-doc-utils {};
 
@@ -9939,8 +9926,6 @@ with pkgs;
 
   vulkan-loader = callPackage ../development/libraries/vulkan-loader { };
 
-  vulkan-loader = callPackage ../development/libraries/vulkan-loader { };
-
   vtkWithQt4 = vtk.override { qtLib = qt4; };
 
   vxl = callPackage ../development/libraries/vxl {
@@ -10124,8 +10109,6 @@ with pkgs;
   czmqpp = callPackage ../development/libraries/czmqpp {
     czmq = czmq3;
   };
-
-  czmqpp = callPackage ../development/libraries/czmqpp { };
 
   zimlib = callPackage ../development/libraries/zimlib { };
 
@@ -10521,7 +10504,6 @@ with pkgs;
   jetty = callPackage ../servers/http/jetty { };
 
   knot-dns = callPackage ../servers/dns/knot-dns { };
-
   knot-resolver = callPackage ../servers/dns/knot-resolver {
     # TODO: vimNox after it gets fixed on Darwin or something lighter
     hexdump = if stdenv.isLinux then utillinux.bin else vim/*xxd*/;
@@ -11472,7 +11454,6 @@ with pkgs;
     kernelPatches = [
       kernelPatches.bridge_stp_helper
       kernelPatches.modinst_arg_list_too_long
-      kernelPatches.DCCP_double_free_vulnerability_CVE-2017-6074
     ] ++ lib.optionals ((platform.kernelArch or null) == "mips") [
       kernelPatches.mips_fpureg_emu
       kernelPatches.mips_fpu_sigill
@@ -13625,7 +13606,6 @@ with pkgs;
     cmake = cmake_2_8;
     ffmpeg = ffmpeg_1;
   };
-  freerdp = freerdpUnstable; # freerdpStable is marked broken, please switch back to it once fixed
 
   freicoin = callPackage ../applications/misc/freicoin {
     boost = boost155;
