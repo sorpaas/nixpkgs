@@ -752,6 +752,9 @@ self: super: {
   # https://github.com/pontarius/pontarius-xmpp/issues/105
   pontarius-xmpp = dontCheck super.pontarius-xmpp;
 
+  # fails with sandbox
+  yi-keymap-vim = dontCheck super.yi-keymap-vim;
+
   # https://github.com/bmillwood/applicative-quoters/issues/6
   applicative-quoters = doJailbreak super.applicative-quoters;
 
@@ -877,4 +880,7 @@ self: super: {
 
   # https://github.com/danidiaz/streaming-eversion/issues/1
   streaming-eversion = dontCheck super.streaming-eversion;
+
+  # https://github.com/danidiaz/tailfile-hinotify/issues/2
+  tailfile-hinotify = dontCheck super.tailfile-hinotify;
 }

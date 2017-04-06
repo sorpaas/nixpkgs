@@ -271,13 +271,15 @@ with pkgs;
 
   kdeDerivation = import ../build-support/kde/derivation.nix { inherit stdenv lib; };
 
-  kdeWrapper = import ../build-support/kde/wrapper.nix {
-    inherit stdenv lib makeWrapper buildEnv;
+  kdeWrapper = callPackage ../build-support/kde/wrapper.nix {
+    inherit (gnome3) dconf;
   };
 
   nixBufferBuilders = import ../build-support/emacs/buffer.nix { inherit (pkgs) lib writeText; inherit (emacsPackagesNg) inherit-local; };
 
   pathsFromGraph = ../build-support/kernel/paths-from-graph.pl;
+
+  setupSystemdUnits = callPackage ../build-support/setup-systemd-units.nix { };
 
   singularity-tools = callPackage ../build-support/singularity-tools { };
 
@@ -317,7 +319,7 @@ with pkgs;
   findXMLCatalogs = makeSetupHook { } ../build-support/setup-hooks/find-xml-catalogs.sh;
 
   wrapGAppsHook = makeSetupHook {
-    deps = [ makeWrapper ];
+    deps = [ gnome3.dconf gnome3.gtk makeWrapper ];
   } ../build-support/setup-hooks/wrap-gapps-hook.sh;
 
   separateDebugInfo = makeSetupHook { } ../build-support/setup-hooks/separate-debug-info.sh;
@@ -426,7 +428,7 @@ with pkgs;
     withGui = false;
   };
 
-  apitrace = libsForQt55.callPackage ../applications/graphics/apitrace {};
+  apitrace = libsForQt56.callPackage ../applications/graphics/apitrace {};
 
   argus = callPackage ../tools/networking/argus {};
 
@@ -886,6 +888,8 @@ with pkgs;
 
   fastJson = callPackage ../development/libraries/fastjson { };
 
+  filebeat = callPackage ../misc/logging/filebeat { };
+
   filebench = callPackage ../tools/misc/filebench { };
 
   fsmon = callPackage ../tools/misc/fsmon { };
@@ -928,6 +932,8 @@ with pkgs;
 
   gti = callPackage ../tools/misc/gti { };
 
+  heartbeat = callPackage ../misc/logging/heartbeat { };
+
   heatseeker = callPackage ../tools/misc/heatseeker { };
 
   hexio = callPackage ../development/tools/hexio { };
@@ -945,6 +951,8 @@ with pkgs;
   mathics = pythonPackages.mathics;
 
   meson = callPackage ../development/tools/build-managers/meson { };
+
+  metricbeat = callPackage ../misc/logging/metricbeat { };
 
   mp3fs = callPackage ../tools/filesystems/mp3fs { };
 
@@ -1222,37 +1230,25 @@ with pkgs;
   m17n_lib = callPackage ../tools/inputmethods/m17n-lib { };
 
   ibus = callPackage ../tools/inputmethods/ibus {
-    inherit (python3Packages) pygobject3;
     inherit (gnome3) dconf glib;
   };
 
   ibus-qt = callPackage ../tools/inputmethods/ibus/ibus-qt.nix { };
 
   ibus-engines = recurseIntoAttrs {
+    anthy = callPackage ../tools/inputmethods/ibus-engines/ibus-anthy { };
 
-    anthy = callPackage ../tools/inputmethods/ibus-engines/ibus-anthy {
-      inherit (python3Packages) pygobject3;
-    };
+    hangul = callPackage ../tools/inputmethods/ibus-engines/ibus-hangul { };
 
-    hangul = callPackage ../tools/inputmethods/ibus-engines/ibus-hangul {
-      inherit (python3Packages) pygobject3;
-    };
+    libpinyin = callPackage ../tools/inputmethods/ibus-engines/ibus-libpinyin { };
 
-    libpinyin = callPackage ../tools/inputmethods/ibus-engines/ibus-libpinyin {
-      inherit (python3Packages) pygobject3;
-    };
-
-    m17n = callPackage ../tools/inputmethods/ibus-engines/ibus-m17n {
-      inherit (python3Packages) pygobject3;
-    };
+    m17n = callPackage ../tools/inputmethods/ibus-engines/ibus-m17n { };
 
     mozc = callPackage ../tools/inputmethods/ibus-engines/ibus-mozc {
-      inherit (pythonPackages) gyp;
       protobuf = protobuf.override { stdenv = clangStdenv; };
     };
 
     table = callPackage ../tools/inputmethods/ibus-engines/ibus-table {
-      inherit (python3Packages) pygobject3;
       inherit (gnome3) dconf;
     };
 
@@ -1308,7 +1304,7 @@ with pkgs;
 
   convoy = callPackage ../tools/filesystems/convoy { };
 
-  cool-retro-term = libsForQt55.callPackage ../applications/misc/cool-retro-term { };
+  cool-retro-term = libsForQt56.callPackage ../applications/misc/cool-retro-term { };
 
   coreutils = callPackage ../tools/misc/coreutils {
     aclSupport = stdenv.isLinux;
@@ -1915,6 +1911,8 @@ with pkgs;
   gitfs = callPackage ../tools/filesystems/gitfs { };
 
   gitinspector = callPackage ../applications/version-management/gitinspector { };
+
+  gitkraken = callPackage ../applications/version-management/gitkraken { };
 
   gitlab = callPackage ../applications/version-management/gitlab { };
 
@@ -3273,21 +3271,16 @@ with pkgs;
     nix = nixUnstable;
   };
 
+  packetbeat = callPackage ../misc/logging/packetbeat { };
+
   pakcs = callPackage ../development/compilers/pakcs {};
 
   pal = callPackage ../tools/misc/pal { };
 
-  pandoc = haskell.lib.overrideCabal haskellPackages.pandoc (drv: {
+  pandoc = haskell.lib.overrideCabal (haskell.lib.justStaticExecutables haskellPackages.pandoc) (drv: {
     configureFlags = drv.configureFlags or [] ++ ["-fembed_data_files"];
     buildTools = drv.buildTools or [] ++ [haskellPackages.hsb2hs];
-    enableSharedExecutables = false;
-    enableSharedLibraries = false;
-    isLibrary = false;
-    doHaddock = false;
-    postFixup = "rm -rf $out/lib $out/nix-support $out/share";
   });
-
-  panomatic = callPackage ../tools/graphics/panomatic { };
 
   pamtester = callPackage ../tools/security/pamtester { };
 
@@ -3831,7 +3824,7 @@ with pkgs;
 
   siege = callPackage ../tools/networking/siege {};
 
-  sigil = libsForQt55.callPackage ../applications/editors/sigil { };
+  sigil = libsForQt56.callPackage ../applications/editors/sigil { };
 
   # aka., gpg-tools
   signing-party = callPackage ../tools/security/signing-party { };
@@ -4014,8 +4007,6 @@ with pkgs;
     pythonPackages = python3Packages;
    };
 
-  sitecopy = callPackage ../tools/networking/sitecopy { };
-
   stricat = callPackage ../tools/security/stricat { };
 
   staruml = callPackage ../tools/misc/staruml { inherit (gnome2) GConf; libgcrypt = libgcrypt_1_5; };
@@ -4113,9 +4104,7 @@ with pkgs;
 
   tor-arm = callPackage ../tools/security/tor/tor-arm.nix { };
 
-  torbrowser = callPackage ../tools/security/tor/torbrowser.nix {
-    inherit (xorg) libXrender libX11 libXext libXt;
-  };
+  torbrowser = callPackage ../applications/networking/browsers/torbrowser { };
 
   touchegg = callPackage ../tools/inputmethods/touchegg { };
 
@@ -4349,8 +4338,6 @@ with pkgs;
   };
 
   time = callPackage ../tools/misc/time { };
-
-  tkabber = callPackage ../applications/networking/instant-messengers/tkabber { };
 
   qfsm = callPackage ../applications/science/electronics/qfsm { };
 
@@ -5118,14 +5105,11 @@ with pkgs;
 
   cabal-install = haskell.lib.disableSharedExecutables haskellPackages.cabal-install;
 
-  stack = haskell.lib.overrideCabal haskellPackages.stack (drv: {
-    enableSharedExecutables = false;
-    isLibrary = false;
-    doHaddock = false;
-    postFixup = "rm -rf $out/lib $out/nix-support $out/share/doc";
-  });
+  stack = haskell.lib.justStaticExecutables haskellPackages.stack;
 
   all-cabal-hashes = callPackage ../data/misc/hackage/default.nix { };
+
+  purescript = haskell.lib.justStaticExecutables haskellPackages.purescript;
 
   inherit (ocamlPackages) haxe;
 
@@ -5239,7 +5223,7 @@ with pkgs;
   jre = if stdenv.isDarwin then jre7 else jre8;
   jre_headless = if stdenv.isDarwin then jre7 else jre8_headless;
 
-  openshot-qt = callPackage ../applications/video/openshot-qt { };
+  openshot-qt = libsForQt56.callPackage ../applications/video/openshot-qt { };
 
   oraclejdk = pkgs.jdkdistro true false;
 
@@ -6006,7 +5990,7 @@ with pkgs;
 
   ssm-agent = callPackage ../applications/networking/cluster/ssm-agent { };
 
-  supercollider = callPackage ../development/interpreters/supercollider {
+  supercollider = libsForQt56.callPackage ../development/interpreters/supercollider {
     fftw = fftwSinglePrec;
   };
 
@@ -6738,12 +6722,7 @@ with pkgs;
 
   shards = callPackage ../development/tools/build-managers/shards { };
 
-  shellcheck = haskell.lib.overrideCabal haskellPackages.ShellCheck (drv: {
-    isLibrary = false;
-    enableSharedExecutables = false;
-    doHaddock = false;
-    postFixup = "rm -rf $out/lib $out/nix-support $out/share/doc";
-  });
+  shellcheck = haskell.lib.justStaticExecutables haskellPackages.ShellCheck;
 
   shncpd = callPackage ../tools/networking/shncpd { };
 
@@ -7202,8 +7181,6 @@ with pkgs;
   enchant = callPackage ../development/libraries/enchant { };
 
   enet = callPackage ../development/libraries/enet { };
-
-  enginepkcs11 = callPackage ../development/libraries/enginepkcs11 { };
 
   epoxy = callPackage ../development/libraries/epoxy {};
 
@@ -8886,6 +8863,7 @@ with pkgs;
   mesa_drivers = mesaDarwinOr (
     let mo = mesa_noglu.override {
       grsecEnabled = config.grsecurity or false;
+      enableTextureFloats = true;
     };
     in mo.drivers
   );
@@ -9000,9 +8978,7 @@ with pkgs;
   };
   libnghttp2 = nghttp2.lib;
 
-  nix-plugins = callPackage ../development/libraries/nix-plugins {
-    nix = pkgs.nixUnstable;
-  };
+  nix-plugins = callPackage ../development/libraries/nix-plugins {};
 
   nlohmann_json = callPackage ../development/libraries/nlohmann_json { };
 
@@ -9116,7 +9092,6 @@ with pkgs;
   wolfssl = callPackage ../development/libraries/wolfssl { };
 
   openssl = openssl_1_0_2;
-  openssl-steam = openssl_1_0_2-steam;
 
   inherit (callPackages ../development/libraries/openssl {
       fetchurl = fetchurlBoot;
@@ -9126,8 +9101,7 @@ with pkgs;
       };
     })
     openssl_1_0_2
-    openssl_1_1_0
-    openssl_1_0_2-steam;
+    openssl_1_1_0;
 
   openssl-chacha = callPackage ../development/libraries/openssl/chacha.nix {
     cryptodevHeaders = linuxPackages.cryptodev.override {
@@ -9305,20 +9279,6 @@ with pkgs;
     developerBuild = true;
   });
 
-  qt55 = recurseIntoAttrs (import ../development/libraries/qt-5/5.5 {
-    inherit newScope;
-    inherit stdenv fetchurl makeSetupHook makeWrapper;
-    bison = bison2; # error: too few arguments to function 'int yylex(...
-    cups = if stdenv.isLinux then cups else null;
-    harfbuzz = harfbuzz-icu;
-    mesa = mesa_noglu;
-    inherit perl;
-    inherit (gnome2) libgnomeui GConf gnome_vfs;
-    inherit (gst_all_1) gstreamer gst-plugins-base;
-  });
-
-  libsForQt55 = recurseIntoAttrs (lib.makeScope qt55.newScope mkLibsForQt5);
-
   qt56 = recurseIntoAttrs (import ../development/libraries/qt-5/5.6 {
     inherit newScope;
     inherit stdenv fetchurl makeSetupHook makeWrapper;
@@ -9332,21 +9292,8 @@ with pkgs;
 
   libsForQt56 = recurseIntoAttrs (lib.makeScope qt56.newScope mkLibsForQt5);
 
-  qt57 = recurseIntoAttrs (import ../development/libraries/qt-5/5.7 {
-    inherit newScope;
-    inherit stdenv fetchurl makeSetupHook makeWrapper;
-    bison = bison2; # error: too few arguments to function 'int yylex(...
-    cups = if stdenv.isLinux then cups else null;
-    harfbuzz = harfbuzz-icu;
-    mesa = mesa_noglu;
-    inherit perl;
-    inherit (gst_all_1) gstreamer gst-plugins-base;
-  });
-
-  libsForQt57 = recurseIntoAttrs (lib.makeScope qt57.newScope mkLibsForQt5);
-
-  qt5 = qt57;
-  libsForQt5 = libsForQt57;
+  qt5 = qt56;
+  libsForQt5 = libsForQt56;
 
   qt5ct = libsForQt5.callPackage ../tools/misc/qt5ct { };
 
@@ -9398,6 +9345,8 @@ with pkgs;
     libkeyfinder = callPackage ../development/libraries/libkeyfinder { };
 
     libktorrent = callPackage ../development/libraries/libktorrent { };
+
+    libopenshot = callPackage ../applications/video/openshot-qt/libopenshot.nix {};
 
     mlt = callPackage ../development/libraries/mlt/qt-5.nix {
       ffmpeg = ffmpeg_2;
@@ -9752,8 +9701,6 @@ with pkgs;
   };
 
   tclap = callPackage ../development/libraries/tclap {};
-
-  tclgpg = callPackage ../development/libraries/tclgpg { };
 
   tcllib = callPackage ../development/libraries/tcllib { };
 
@@ -10175,8 +10122,6 @@ with pkgs;
   gwtwidgets = callPackage ../development/libraries/java/gwt-widgets { };
 
   javaCup = callPackage ../development/libraries/java/cup { };
-
-  jclasslib = callPackage ../development/tools/java/jclasslib { };
 
   jdom = callPackage ../development/libraries/java/jdom { };
 
@@ -11352,6 +11297,7 @@ with pkgs;
   linux_mptcp = callPackage ../os-specific/linux/kernel/linux-mptcp.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
+        kernelPatches.p9_fixes
         kernelPatches.packet_fix_race_condition_CVE_2016_8655
         kernelPatches.DCCP_double_free_vulnerability_CVE-2017-6074
       ]
@@ -11372,6 +11318,7 @@ with pkgs;
   linux_3_10 = callPackage ../os-specific/linux/kernel/linux-3.10.nix {
     kernelPatches = with kernelPatches;
       [ bridge_stp_helper
+        p9_fixes
         lguest_entry-linkage
         packet_fix_race_condition_CVE_2016_8655
         DCCP_double_free_vulnerability_CVE-2017-6074
@@ -11383,32 +11330,10 @@ with pkgs;
       ];
   };
 
-  linux_3_12 = callPackage ../os-specific/linux/kernel/linux-3.12.nix {
-    kernelPatches = with kernelPatches;
-      [ bridge_stp_helper
-      ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
-  linux_4_1 = callPackage ../os-specific/linux/kernel/linux-4.1.nix {
-    kernelPatches =
-      [ kernelPatches.bridge_stp_helper
-        kernelPatches.DCCP_double_free_vulnerability_CVE-2017-6074
-      ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
   linux_4_4 = callPackage ../os-specific/linux/kernel/linux-4.4.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
+        kernelPatches.p9_fixes
         kernelPatches.cpu-cgroup-v2."4.4"
       ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
@@ -11421,6 +11346,7 @@ with pkgs;
   linux_4_9 = callPackage ../os-specific/linux/kernel/linux-4.9.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
+        kernelPatches.p9_fixes
         # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
         # when adding a new linux version
         # !!! 4.7 patch doesn't apply, 4.9 patch not up yet, will keep checking
@@ -11437,6 +11363,7 @@ with pkgs;
   linux_4_10 = callPackage ../os-specific/linux/kernel/linux-4.10.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
+        kernelPatches.p9_fixes
         # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
         # when adding a new linux version
         # !!! 4.7 patch doesn't apply, 4.9 patch not up yet, will keep checking
@@ -11453,6 +11380,7 @@ with pkgs;
   linux_testing = callPackage ../os-specific/linux/kernel/linux-testing.nix {
     kernelPatches = [
       kernelPatches.bridge_stp_helper
+      kernelPatches.p9_fixes
       kernelPatches.modinst_arg_list_too_long
     ] ++ lib.optionals ((platform.kernelArch or null) == "mips") [
       kernelPatches.mips_fpureg_emu
@@ -11633,8 +11561,6 @@ with pkgs;
   linuxPackages_mptcp = linuxPackagesFor pkgs.linux_mptcp;
   linuxPackages_rpi = linuxPackagesFor pkgs.linux_rpi;
   linuxPackages_3_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_10);
-  linuxPackages_3_12 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_12);
-  linuxPackages_4_1 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_1);
   linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4);
   linuxPackages_4_9 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_9);
   linuxPackages_4_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_10);
@@ -12964,7 +12890,7 @@ with pkgs;
   cutecom = callPackage ../tools/misc/cutecom { };
 
   cutegram =
-    let callpkg = libsForQt55.callPackage;
+    let callpkg = libsForQt56.callPackage;
     in callpkg ../applications/networking/instant-messengers/telegram/cutegram rec {
       libqtelegram-aseman-edition = callpkg ../applications/networking/instant-messengers/telegram/libqtelegram-aseman-edition { };
       telegram-qml = callpkg ../applications/networking/instant-messengers/telegram/telegram-qml {
@@ -12982,13 +12908,8 @@ with pkgs;
 
   cyclone = callPackage ../applications/audio/pd-plugins/cyclone  { };
 
-  darcs = haskell.lib.overrideCabal haskellPackages.darcs (drv: {
+  darcs = haskell.lib.overrideCabal (haskell.lib.justStaticExecutables haskellPackages.darcs) (drv: {
     configureFlags = (stdenv.lib.remove "-flibrary" drv.configureFlags or []) ++ ["-f-library"];
-    enableSharedExecutables = false;
-    enableSharedLibraries = false;
-    isLibrary = false;
-    doHaddock = false;
-    postFixup = "rm -rf $out/lib $out/nix-support $out/share";
   });
 
   darktable = callPackage ../applications/graphics/darktable {
@@ -13381,7 +13302,7 @@ with pkgs;
 
   fbreader = callPackage ../applications/misc/fbreader { };
 
-  fdr = qt57.callPackage ../applications/science/programming/fdr { };
+  fdr = libsForQt56.callPackage ../applications/science/programming/fdr { };
 
   fehlstart = callPackage ../applications/misc/fehlstart { };
 
@@ -13446,7 +13367,7 @@ with pkgs;
 
   gnuradio-osmosdr = callPackage ../applications/misc/gnuradio-osmosdr { };
 
-  goldendict = libsForQt55.callPackage ../applications/misc/goldendict { };
+  goldendict = libsForQt56.callPackage ../applications/misc/goldendict { };
 
   inherit (ocamlPackages) google-drive-ocamlfuse;
 
@@ -14280,7 +14201,7 @@ with pkgs;
 
   lrzsz = callPackage ../tools/misc/lrzsz { };
 
-  luminanceHDR = libsForQt55.callPackage ../applications/graphics/luminance-hdr { };
+  luminanceHDR = libsForQt56.callPackage ../applications/graphics/luminance-hdr { };
 
   lxdvdrip = callPackage ../applications/video/lxdvdrip { };
 
@@ -14516,7 +14437,7 @@ with pkgs;
       avahi = avahi.override {
         withLibdnssdCompat = true;
       };
-      qt5 = qt55; # Mumble doesn't work with newer Qt versions.
+      qt5 = qt56; # Mumble doesn't work with Qt > 5.5
       jackSupport = config.mumble.jackSupport or false;
       speechdSupport = config.mumble.speechdSupport or false;
       pulseSupport = config.pulseaudio or false;
@@ -14529,7 +14450,7 @@ with pkgs;
       else null;
   };
 
-  musescore = libsForQt55.callPackage ../applications/audio/musescore { };
+  musescore = libsForQt56.callPackage ../applications/audio/musescore { };
 
   mutt = callPackage ../applications/networking/mailreaders/mutt { };
   mutt-with-sidebar = callPackage ../applications/networking/mailreaders/mutt {
@@ -14581,7 +14502,7 @@ with pkgs;
 
   smplayer = libsForQt5.callPackage ../applications/video/smplayer { };
 
-  smtube = libsForQt55.callPackage ../applications/video/smtube {};
+  smtube = libsForQt56.callPackage ../applications/video/smtube {};
 
   sudolikeaboss = callPackage ../tools/security/sudolikeaboss { };
 
@@ -14652,9 +14573,7 @@ with pkgs;
 
   nedit = callPackage ../applications/editors/nedit { };
 
-  notepadqq = callPackage ../applications/editors/notepadqq {
-    qtbase = qt55;
-  };
+  notepadqq = libsForQt56.callPackage ../applications/editors/notepadqq { };
 
   notmuch = callPackage ../applications/networking/mailreaders/notmuch { };
 
@@ -14701,8 +14620,6 @@ with pkgs;
 
   omxplayer = callPackage ../applications/video/omxplayer { };
 
-  oneteam = callPackage ../applications/networking/instant-messengers/oneteam { };
-
   openbox = callPackage ../applications/window-managers/openbox { };
 
   openbox-menu = callPackage ../applications/misc/openbox-menu { };
@@ -14733,7 +14650,10 @@ with pkgs;
 
   osmo = callPackage ../applications/office/osmo { };
 
-  palemoon = callPackage ../applications/networking/browsers/palemoon { };
+  palemoon = callPackage ../applications/networking/browsers/palemoon {
+    # https://forum.palemoon.org/viewtopic.php?f=57&t=15296#p111146
+    stdenv = overrideCC stdenv gcc49;
+  };
 
   pamix = callPackage ../applications/audio/pamix { };
 
@@ -14932,7 +14852,7 @@ with pkgs;
 
   qgis = callPackage ../applications/gis/qgis {};
 
-  qgroundcontrol = libsForQt55.callPackage ../applications/science/robotics/qgroundcontrol { };
+  qgroundcontrol = libsForQt56.callPackage ../applications/science/robotics/qgroundcontrol { };
 
   qjackctl = libsForQt5.callPackage ../applications/audio/qjackctl { };
 
@@ -15023,7 +14943,7 @@ with pkgs;
     demo = false;
   };
 
-  rapcad = libsForQt55.callPackage ../applications/graphics/rapcad { boost = boost159; };
+  rapcad = libsForQt56.callPackage ../applications/graphics/rapcad { boost = boost159; };
 
   rapidsvn = callPackage ../applications/version-management/rapidsvn { };
 
@@ -15065,7 +14985,7 @@ with pkgs;
 
   retroshare06 = lowPrio (callPackage ../applications/networking/p2p/retroshare/0.6.nix { });
 
-  ricochet = libsForQt55.callPackage ../applications/networking/instant-messengers/ricochet { };
+  ricochet = libsForQt56.callPackage ../applications/networking/instant-messengers/ricochet { };
 
   ripser = callPackage ../applications/science/math/ripser { };
 
@@ -15276,6 +15196,13 @@ with pkgs;
     themes = [];  # extra themes, etc.
   };
 
+  sddmPlasma5 = sddm.override {
+    themes = [
+      plasma5.plasma-workspace
+      pkgs.breeze-icons
+    ];
+  };
+
   skrooge = libsForQt5.callPackage ../applications/office/skrooge {};
 
   slim = callPackage ../applications/display-managers/slim {
@@ -15376,6 +15303,8 @@ with pkgs;
     webkit = webkitgtk2;
   };
 
+  surf-webkit2 = callPackage ../applications/networking/browsers/surf/webkit2.nix { };
+
   swh_lv2 = callPackage ../applications/audio/swh-lv2 { };
 
   sylpheed = callPackage ../applications/networking/mailreaders/sylpheed { };
@@ -15413,7 +15342,7 @@ with pkgs;
     gconf = gnome2.GConf;
   };
 
-  teamspeak_client = libsForQt55.callPackage ../applications/networking/instant-messengers/teamspeak/client.nix { };
+  teamspeak_client = libsForQt56.callPackage ../applications/networking/instant-messengers/teamspeak/client.nix { };
   teamspeak_server = callPackage ../applications/networking/instant-messengers/teamspeak/server.nix { };
 
   taskjuggler = callPackage ../applications/misc/taskjuggler { ruby = ruby_2_0; };
@@ -15439,8 +15368,6 @@ with pkgs;
   telepathy_logger = callPackage ../applications/networking/instant-messengers/telepathy/logger {};
 
   telepathy_mission_control = callPackage ../applications/networking/instant-messengers/telepathy/mission-control { };
-
-  telepathy_rakia = callPackage ../applications/networking/instant-messengers/telepathy/rakia { };
 
   telepathy_salut = callPackage ../applications/networking/instant-messengers/telepathy/salut {};
 
@@ -15541,8 +15468,7 @@ with pkgs;
 
   tribler = callPackage ../applications/networking/p2p/tribler { };
 
-  # We need QtWebkit which was deprecated in Qt 5.6 although it can still be build
-  trojita = with qt55; callPackage ../applications/networking/mailreaders/trojita { };
+  trojita = libsForQt56.callPackage ../applications/networking/mailreaders/trojita { };
 
   tsearch_extras = callPackage ../servers/sql/postgresql/tsearch_extras { };
 
@@ -15642,9 +15568,7 @@ with pkgs;
     inherit (lua52Packages) lpeg;
   };
 
-  virt-viewer = callPackage ../applications/virtualization/virt-viewer {
-    spice_gtk = spice_gtk;
-  };
+  virt-viewer = callPackage ../applications/virtualization/virt-viewer { };
 
   virt-top = callPackage ../applications/virtualization/virt-top {
     ocamlPackages = ocamlPackages_4_01_0;
@@ -17760,7 +17684,7 @@ with pkgs;
     pcre = pcre-cpp;
   });
 
-  redis-desktop-manager = libsForQt55.callPackage ../applications/misc/redis-desktop-manager { };
+  redis-desktop-manager = libsForQt56.callPackage ../applications/misc/redis-desktop-manager { };
 
   robomongo = libsForQt5.callPackage ../applications/misc/robomongo { };
 
@@ -18150,8 +18074,6 @@ with pkgs;
   zk-shell = callPackage ../applications/misc/zk-shell { };
 
   zuki-themes = callPackage ../misc/themes/zuki { };
-
-  zoom-us = libsForQt55.callPackage ../applications/networking/instant-messengers/zoom-us {};
 
   tora = libsForQt5.callPackage ../development/tools/tora {};
 
