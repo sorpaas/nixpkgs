@@ -1,15 +1,15 @@
-{ stdenv, fetchurl, rsync, glibc, gawk }:
+{ stdenv, fetchgit, rsync, glibc, gawk }:
 
 stdenv.mkDerivation rec {
-  version = "v5.53";
+  version = "git-20170407";
   name = "profile-sync-daemon-${version}";
 
-  src = fetchurl {
-    url = "http://github.com/graysky2/profile-sync-daemon/archive/${version}.tar.gz";
-    sha256 = "0m7h9l7dndqgb5k3grpc00f6dpg73p6h4q5sgkf8bvyzvcbdafwx";
+  src = fetchgit {
+    url = "http://github.com/sorpaas/profile-sync-daemon";
+    sha256 = "0l9l0s4wpfiqjl6as8akgb75rgxj1b3q6mqwvcq0bgdxrwhv6nx5";
   };
 
-  installPhase = "PREFIX=\"\" DESTDIR=$out make install-systemd-all";
+  installPhase = "PREFIX=\"\" DESTDIR=$out make install";
 
   preferLocalBuild = true;
 
