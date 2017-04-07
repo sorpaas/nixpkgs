@@ -24,6 +24,8 @@ let
 
     [connection]
     ipv6.ip6-privacy=2
+
+    ${cfg.extraConfig}
   '';
 
   /*
@@ -162,6 +164,14 @@ in {
         default = [];
         description = ''
           A list of scripts which will be executed in response to  network  events.
+        '';
+      };
+
+      extraConfig = mkOption {
+        type = types.lines;
+        default = "";
+        description = ''
+          Additional config to be appended to NetworkManager.conf.
         '';
       };
     };
