@@ -293,6 +293,8 @@ with pkgs;
 
   nukeReferences = callPackage ../build-support/nuke-references/default.nix { };
 
+  removeReferencesTo = callPackage ../build-support/remove-references-to/default.nix { };
+
   vmTools = callPackage ../build-support/vm/default.nix { };
 
   releaseTools = callPackage ../build-support/release/default.nix { };
@@ -319,7 +321,7 @@ with pkgs;
   findXMLCatalogs = makeSetupHook { } ../build-support/setup-hooks/find-xml-catalogs.sh;
 
   wrapGAppsHook = makeSetupHook {
-    deps = [ gnome3.dconf gnome3.gtk makeWrapper ];
+    deps = [ gnome3.dconf gnome3.gtk librsvg makeWrapper ];
   } ../build-support/setup-hooks/wrap-gapps-hook.sh;
 
   separateDebugInfo = makeSetupHook { } ../build-support/setup-hooks/separate-debug-info.sh;
@@ -12967,7 +12969,13 @@ with pkgs;
   dmtx-utils = callPackage (callPackage ../tools/graphics/dmtx-utils) {
   };
 
-  docker = callPackage ../applications/virtualization/docker { };
+  inherit (callPackage ../applications/virtualization/docker { })
+    docker_17_03
+    docker_17_04;
+
+  docker = docker_17_03;
+  docker-edge = docker_17_04;
+
   docker-proxy = callPackage ../applications/virtualization/docker/proxy.nix { };
 
   docker-gc = callPackage ../applications/virtualization/docker/gc.nix { };
@@ -13482,15 +13490,15 @@ with pkgs;
   flac = callPackage ../applications/audio/flac { };
 
   flashplayer = callPackage ../applications/networking/browsers/mozilla-plugins/flashplayer {
-      debug = config.flashplayer.debug or false;
+    debug = config.flashplayer.debug or false;
   };
 
   flashplayer-standalone = callPackage ../applications/networking/browsers/mozilla-plugins/flashplayer/standalone.nix {
-      debug = config.flashplayer.debug or false;
+    debug = config.flashplayer.debug or false;
   };
 
   flashplayer-standalone-debugger = flashplayer-standalone.override {
-      debug = true;
+    debug = true;
   };
 
   fluxbox = callPackage ../applications/window-managers/fluxbox { };
@@ -15104,6 +15112,8 @@ with pkgs;
   sniproxy = callPackage ../applications/networking/sniproxy { };
 
   sooperlooper = callPackage ../applications/audio/sooperlooper { };
+
+  sops = callPackage ../tools/security/sops { };
 
   sorcer = callPackage ../applications/audio/sorcer { };
 
