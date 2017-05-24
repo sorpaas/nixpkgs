@@ -11087,6 +11087,10 @@ with pkgs;
 
   disk_indicator = callPackage ../os-specific/linux/disk-indicator { };
 
+  displaylink = callPackage ../os-specific/linux/displaylink {
+    inherit (linuxPackages) evdi;
+  };
+
   dmidecode = callPackage ../os-specific/linux/dmidecode { };
 
   dmtcp = callPackage ../os-specific/linux/dmtcp { };
@@ -11363,20 +11367,6 @@ with pkgs;
       ];
   };
 
-  linux_4_10 = callPackage ../os-specific/linux/kernel/linux-4.10.nix {
-    kernelPatches =
-      [ kernelPatches.bridge_stp_helper
-        kernelPatches.p9_fixes
-        kernelPatches.cpu-cgroup-v2."4.10"
-        kernelPatches.modinst_arg_list_too_long
-      ]
-      ++ lib.optionals ((platform.kernelArch or null) == "mips")
-      [ kernelPatches.mips_fpureg_emu
-        kernelPatches.mips_fpu_sigill
-        kernelPatches.mips_ext3_n32
-      ];
-  };
-
   linux_4_11 = callPackage ../os-specific/linux/kernel/linux-4.11.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
@@ -11455,11 +11445,11 @@ with pkgs;
 
     cpupower = callPackage ../os-specific/linux/cpupower { };
 
-    displaylink = callPackage ../os-specific/linux/displaylink { };
-
     dpdk = callPackage ../os-specific/linux/dpdk { };
 
     exfat-nofuse = callPackage ../os-specific/linux/exfat { };
+
+    evdi = callPackage ../os-specific/linux/evdi { };
 
     pktgen = callPackage ../os-specific/linux/pktgen { };
 
@@ -11579,7 +11569,6 @@ with pkgs;
   linuxPackages_3_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_10);
   linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4);
   linuxPackages_4_9 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_9);
-  linuxPackages_4_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_10);
   linuxPackages_4_11 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_11);
   # Don't forget to update linuxPackages_latest!
 
