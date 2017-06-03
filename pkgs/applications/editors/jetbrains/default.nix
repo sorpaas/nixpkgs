@@ -6,10 +6,10 @@
 assert stdenv.isLinux;
 
 let
-  mkIdeaProduct = callPackage ./common.nix { };
+  mkJetBrainsProduct = callPackage ./common.nix { };
 
   buildClion = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct rec {
+    (mkJetBrainsProduct rec {
       inherit name version src wmClass jdk;
       product = "CLion";
       meta = with stdenv.lib; {
@@ -25,7 +25,7 @@ let
     });
 
   buildIdea = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct rec {
+    (mkJetBrainsProduct rec {
       inherit name version src wmClass jdk;
       product = "IDEA";
       meta = with stdenv.lib; {
@@ -42,7 +42,7 @@ let
     });
 
   buildRubyMine = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct rec {
+    (mkJetBrainsProduct rec {
       inherit name version src wmClass jdk;
       product = "RubyMine";
       meta = with stdenv.lib; {
@@ -55,7 +55,7 @@ let
     });
 
   buildPhpStorm = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct {
+    (mkJetBrainsProduct {
       inherit name version src wmClass jdk;
       product = "PhpStorm";
       meta = with stdenv.lib; {
@@ -72,7 +72,7 @@ let
     });
 
   buildWebStorm = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct {
+    (mkJetBrainsProduct {
       inherit name version src wmClass jdk;
       product = "WebStorm";
       meta = with stdenv.lib; {
@@ -89,7 +89,7 @@ let
     });
 
   buildPycharm = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct rec {
+    (mkJetBrainsProduct rec {
       inherit name version src wmClass jdk;
       product = "PyCharm";
       meta = with stdenv.lib; {
@@ -116,7 +116,7 @@ let
     };
 
   buildDataGrip = { name, version, src, license, description, wmClass }:
-    (mkIdeaProduct {
+    (mkJetBrainsProduct {
       inherit name version src wmClass jdk;
       product = "DataGrip";
       meta = with stdenv.lib; {
@@ -256,24 +256,24 @@ in
 
   pycharm-community = buildPycharm rec {
     name = "pycharm-community-${version}";
-    version = "2017.1";
+    version = "2017.1.3";
     description = "PyCharm Community Edition";
     license = stdenv.lib.licenses.asl20;
     src = fetchurl {
       url = "https://download.jetbrains.com/python/${name}.tar.gz";
-      sha256 = "14p6f15n0927awgpsdsdqgmdfbbwkykrw5xggz5hnfl7d05i4sb6";
+      sha256 = "06sai589zli5xaggfk4g0j0grbw9mya9qlwabmxh9414qq3bzvbd";
     };
     wmClass = "jetbrains-pycharm-ce";
   };
 
   pycharm-professional = buildPycharm rec {
     name = "pycharm-professional-${version}";
-    version = "2017.1";
+    version = "2017.1.3";
     description = "PyCharm Professional Edition";
     license = stdenv.lib.licenses.unfree;
     src = fetchurl {
       url = "https://download.jetbrains.com/python/${name}.tar.gz";
-      sha256 = "1rvic3njsq480pslhw6rxld7jngchihkplq3dfnmkr2h9gx26lkf";
+      sha256 = "1wzgh83504px7q93h9xkarih2qjchiavgysy4di82q7377s6xd0c";
     };
     wmClass = "jetbrains-pycharm";
   };
