@@ -208,12 +208,12 @@ in
 
   idea-ultimate = buildIdea rec {
     name = "idea-ultimate-${version}";
-    version = "2017.1";
+    version = "2017.1.4";
     description = "Integrated Development Environment (IDE) by Jetbrains, requires paid license";
     license = stdenv.lib.licenses.unfree;
     src = fetchurl {
       url = "https://download.jetbrains.com/idea/ideaIU-${version}.tar.gz";
-      sha256 = "4508a4b7b30fb97c02975d72ec5116a3a6fedc2a76758f4087f62cef2b94a8a0";
+      sha256 = "0a93fba480pvdh6x263fm7rb9w728smgx65nbvkkbdqngjmnanyx";
     };
     wmClass = "jetbrains-idea";
   };
