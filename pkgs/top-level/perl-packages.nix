@@ -11032,6 +11032,19 @@ let self = _self // overrides; _self = with self; {
       sha256 = "09c8xb43p1s6ala6g4274az51mf33phyjkp66dpvgkgbi1xfnawp";
     };
   };
+  
+  RegexpGrammars = buildPerlPackage rec {
+    name = "Regexp-Grammars-1.045";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/D/DC/DCONWAY/${name}.tar.gz";
+      sha256 = "8ab001f5641d03f7acce09ca5826b219b02ce40f8e56c2066737228a9232b594";
+    };
+    meta = {
+      homepage = http://search.cpan.org/~dconway/Regexp-Grammars-1.045/lib/Regexp/Grammars.pm;
+      description = "Add grammatical parsing features to Perl 5.10 regexes";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
 
   RegexpIPv6 = buildPerlPackage {
     name = "Regexp-IPv6-0.03";
@@ -11741,6 +11754,14 @@ let self = _self // overrides; _self = with self; {
     meta = {
       maintainers = with maintainers; [ ];
       platforms   = stdenv.lib.platforms.unix;
+    };
+  };
+
+  ShellCommand = buildPerlPackage {
+    name = "Shell-Command-0.06";
+    src = fetchurl {
+      url = mirror://cpan/authors/id/F/FL/FLORA/Shell-Command-0.06.tar.gz;
+      sha256 = "1lgc2rb3b5a4lxvbq0cbg08qk0n2i88srxbsz93bwi3razpxxr7k";
     };
   };
 
