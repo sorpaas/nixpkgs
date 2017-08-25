@@ -466,6 +466,7 @@
   sleexyz = "Sean Lee <freshdried@gmail.com>";
   smironov = "Sergey Mironov <grrwlf@gmail.com>";
   solson = "Scott Olson <scott@solson.me>";
+  sorpaas = "Wei Tang <hi@that.world>";
   spacefrogg = "Michael Raitza <spacefrogg-nixos@meterriblecrew.net>";
   spencerjanssen = "Spencer Janssen <spencerjanssen@gmail.com>";
   spinus = "Tomasz Czyż <tomasz.czyz@gmail.com>";
