@@ -118,6 +118,8 @@ in {
     };
   };
 
+  phonenumbers = callPackage ../development/python-modules/phonenumbers { };
+
   agate-dbf = buildPythonPackage rec {
     name = "agate-dbf-0.1.0";
     disabled = isPy3k;
@@ -154,6 +156,10 @@ in {
       url = "mirror://pypi/a/agate-excel/${name}.tar.gz";
       sha256 = "08zvj3pwqw8zhd58iyymiwblrk92y4gl6yyrb2svb0k8za7v0hak";
     };
+  };
+
+  augeas = callPackage ../development/python-modules/augeas {
+    inherit (pkgs) augeas;
   };
 
   ansicolor = buildPythonPackage rec {
@@ -1003,6 +1009,7 @@ in {
 
   ansible_2_1 = callPackage ../development/python-modules/ansible/2.1.nix {};
   ansible_2_2 = callPackage ../development/python-modules/ansible/2.2.nix {};
+  ansible_2_3 = lowPrio (callPackage ../development/python-modules/ansible/2.3.nix {});
 
   apipkg = buildPythonPackage rec {
     name = "apipkg-1.4";
@@ -15314,25 +15321,25 @@ in {
     };
   };
 
-  pygraphviz = buildPythonPackage rec {
-    name = "pygraphviz-${version}";
-    version = "1.4rc1";
+  graphviz = buildPythonPackage rec {
+    name = "graphviz-${version}";
+    version = "0.5.2";
 
     src = pkgs.fetchurl {
-      url = "mirror://pypi/p/pygraphviz/${name}.tar.gz";
-      sha256 = "00ck696rddjnrwfnh1zw87b9xzqfm6sqjy6kqf6kmn1xwsi6f19a";
+      url = "mirror://pypi/g/graphviz/${name}.zip";
+      sha256 = "0jh31nlm0qbxwylhdkwnb69pcjlc5z03fcfbs0gvgzp3hfrngsk0";
     };
 
-    buildInputs = with self; [ doctest-ignore-unicode mock nose ];
-    propagatedBuildInputs = [ pkgs.graphviz pkgs.pkgconfig ];
+    propagatedBuildInputs = [ pkgs.graphviz ];
 
     meta = {
-      description = "Python interface to Graphviz graph drawing package";
-      homepage = https://github.com/pygraphviz/pygraphviz;
-      license = licenses.bsd3;
-      maintainers = with maintainers; [ matthiasbeyer ];
+      description = "Simple Python interface for Graphviz";
+      homepage = https://github.com/xflr6/graphviz;
+      license = licenses.mit;
     };
   };
+
+  pygraphviz = callPackage ../development/python-modules/pygraphviz { };
 
   pympler = buildPythonPackage rec {
     pname = "Pympler";
@@ -21473,6 +21480,10 @@ in {
       sed -i 's/test_set_default_verify_paths/noop/' tests/test_ssl.py
     '';
 
+    # 20170626: Disable tests until the hardcoded certificates in the
+    # test sources are updated. This stopped working around June 10-11 2017.
+    doCheck = false;
+
     checkPhase = ''
       runHook preCheck
       export LANG="en_US.UTF-8";
@@ -24537,13 +24548,13 @@ in {
   };
 
   supervisor = buildPythonPackage rec {
-    name = "supervisor-3.1.1";
+    name = "supervisor-3.1.4";
 
     disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "mirror://pypi/s/supervisor/${name}.tar.gz";
-      sha256 = "e3c3b35804c24b6325b5ba462553ebee80d5f4d1766274737b5c532cd4a11d59";
+      sha256 = "0kk0sv7780m4dzmrcb2m284krz907jh8jp7khz5a79qryy4m1xw2";
     };
 
     buildInputs = with self; [ mock ];

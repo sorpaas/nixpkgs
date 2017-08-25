@@ -181,12 +181,14 @@ with pkgs;
 
   fetchFromGitHub = {
     owner, repo, rev, name ? "${repo}-${rev}-src",
-    fetchSubmodules ? false,
+    fetchSubmodules ? false, private ? false,
+    githubBase ? "github.com", varPrefix ? null,
     ... # For hash agility
-  }@args:
+  }@args: assert private -> !fetchSubmodules;
   let
-    baseUrl = "https://github.com/${owner}/${repo}";
-    passthruAttrs = removeAttrs args [ "owner" "repo" "rev" "fetchSubmodules" ];
+    baseUrl = "https://${githubBase}/${owner}/${repo}";
+    passthruAttrs = removeAttrs args [ "owner" "repo" "rev" "fetchSubmodules" "private" "githubBase" "varPrefix" ];
+    varBase = "NIX${if varPrefix == null then "" else "_${varPrefix}"}_GITHUB_PRIVATE_";
   in if fetchSubmodules then
     fetchgit ({
       inherit name rev fetchSubmodules;
@@ -199,6 +201,19 @@ with pkgs;
       inherit name;
       url = "${baseUrl}/archive/${rev}.tar.gz";
       meta.homepage = "${baseUrl}/";
+    } // lib.optionalAttrs private {
+      netrcPhase = ''
+        if [ -z "''$${varBase}USERNAME" -o -z "''$${varBase}PASSWORD" ]; then
+          echo "Error: Private fetchFromGitHub requires the nix building process (nix-daemon in multi user mode) to have the ${varBase}USERNAME and ${varBase}PASSWORD env vars set." >&2
+          exit 1
+        fi
+        cat > netrc <<EOF
+        machine ${githubBase}
+                login ''$${varBase}USERNAME
+                password ''$${varBase}PASSWORD
+        EOF
+      '';
+      netrcImpureEnvVars = [ "${varBase}USERNAME" "${varBase}PASSWORD" ];
     } // passthruAttrs) // { inherit rev; };
 
   fetchFromBitbucket = {
@@ -476,6 +491,8 @@ with pkgs;
   azure-vhd-utils  = callPackage ../tools/misc/azure-vhd-utils { };
 
   awless = callPackage ../tools/virtualization/awless { };
+
+  aws-auth = callPackage ../tools/admin/aws-auth { };
 
   ec2_api_tools = callPackage ../tools/virtualization/ec2-api-tools { };
 
@@ -2611,16 +2628,32 @@ with pkgs;
     libtool = darwin.cctools;
   };
 
+  # Per https://github.com/ghcjs/ghcjs/issues/588#issuecomment-302891368 ghcjs
+  # is picky about the nodejs version.
+  nodejs-ghcjs = callPackage ../development/web/nodejs/v6-ghcjs.nix {
+    libtool = darwin.cctools;
+  };
+
   nodejs-slim-6_x = callPackage ../development/web/nodejs/v6.nix {
     libtool = darwin.cctools;
     enableNpm = false;
   };
 
+  # 7 will be removed in 17.09
   nodejs-7_x = callPackage ../development/web/nodejs/v7.nix {
     libtool = darwin.cctools;
   };
 
   nodejs-slim-7_x = callPackage ../development/web/nodejs/v7.nix {
+    libtool = darwin.cctools;
+    enableNpm = false;
+  };
+
+  nodejs-8_x = callPackage ../development/web/nodejs/v8.nix {
+    libtool = darwin.cctools;
+  };
+
+  nodejs-slim-8_x = callPackage ../development/web/nodejs/v8.nix {
     libtool = darwin.cctools;
     enableNpm = false;
   };
@@ -4750,6 +4783,11 @@ with pkgs;
 
   clang = llvmPackages.clang;
 
+  clang-sierraHack = clang.override {
+    name = "clang-wrapper-with-reexport-hack";
+    useMacosReexportHack = true;
+  };
+
   clang_4  = llvmPackages_4.clang;
   clang_39 = llvmPackages_39.clang;
   clang_38 = llvmPackages_38.clang;
@@ -4777,6 +4815,7 @@ with pkgs;
 
   #Use this instead of stdenv to build with clang
   clangStdenv = if stdenv.isDarwin then stdenv else lowPrio llvmPackages.stdenv;
+  clang-sierraHack-stdenv = overrideCC stdenv clang-sierraHack;
   libcxxStdenv = lowPrio llvmPackages.libcxxStdenv;
 
   clean = callPackage ../development/compilers/clean { };
@@ -6102,6 +6141,7 @@ with pkgs;
 
   ansible  = python2Packages.ansible2;
   ansible2 = python2Packages.ansible2;
+  ansible_2_3 = lowPrio (python2Packages.ansible_2_3);
 
   antlr = callPackage ../development/tools/parsing/antlr/2.7.7.nix { };
 
@@ -6858,6 +6898,10 @@ with pkgs;
 
   vultr = callPackage ../development/tools/vultr { };
 
+  vulnix = callPackage ../tools/security/vulnix {
+    pythonPackages = python3Packages;
+  };
+
   xc3sprog = callPackage ../development/tools/misc/xc3sprog { };
 
   xcbuild  = callPackage ../development/tools/xcbuild/wrapper.nix {
@@ -7584,9 +7628,15 @@ with pkgs;
 
   gnutls = gnutls35;
 
-  gnutls35 = callPackage ../development/libraries/gnutls/3.5.nix {
-    guileBindings = config.gnutls.guile or false;
-  };
+  gnutls35 = callPackage
+    (if stdenv.isDarwin
+      # Avoid > 3.5.10 due to frameworks for now; see discussion on:
+      # https://github.com/NixOS/nixpkgs/commit/d6454e6a1
+      then ../development/libraries/gnutls/3.5.10.nix
+      else ../development/libraries/gnutls/3.5.nix)
+    {
+      guileBindings = config.gnutls.guile or false;
+    };
 
   gpac = callPackage ../applications/video/gpac { };
 
@@ -9470,7 +9520,7 @@ with pkgs;
   readosm = callPackage ../development/libraries/readosm { };
 
   lambdabot = callPackage ../development/tools/haskell/lambdabot {
-    haskell-lib = haskell.lib;
+    haskellLib = haskell.lib;
   };
 
   leksah = callPackage ../development/tools/haskell/leksah {
@@ -11390,7 +11440,7 @@ with pkgs;
       ];
   };
 
-  linux_4_11 = callPackage ../os-specific/linux/kernel/linux-4.11.nix {
+  linux_4_12 = callPackage ../os-specific/linux/kernel/linux-4.12.nix {
     kernelPatches =
       [ kernelPatches.bridge_stp_helper
         kernelPatches.p9_fixes
@@ -11583,7 +11633,7 @@ with pkgs;
   linux = linuxPackages.kernel;
 
   # Update this when adding the newest kernel major version!
-  linuxPackages_latest = linuxPackages_4_11;
+  linuxPackages_latest = linuxPackages_4_12;
   linux_latest = linuxPackages_latest.kernel;
 
   # Build the kernel modules for the some of the kernels.
@@ -11592,7 +11642,7 @@ with pkgs;
   linuxPackages_3_10 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_10);
   linuxPackages_4_4 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_4);
   linuxPackages_4_9 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_9);
-  linuxPackages_4_11 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_11);
+  linuxPackages_4_12 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_12);
   # Don't forget to update linuxPackages_latest!
 
   # Intentionally lacks recurseIntoAttrs, as -rc kernels will quite likely break out-of-tree modules and cause failed Hydra builds.
@@ -12443,6 +12493,8 @@ with pkgs;
   tipa = callPackage ../data/fonts/tipa { };
 
   ttf_bitstream_vera = callPackage ../data/fonts/ttf-bitstream-vera { };
+
+  ttf-envy-code-r = callPackage ../data/fonts/ttf-envy-code-r {};
 
   tzdata = callPackage ../data/misc/tzdata { };
 
@@ -16261,6 +16313,8 @@ with pkgs;
 
   factorio-headless = callPackage ../games/factorio { releaseType = "headless"; };
 
+  factorio-demo = callPackage ../games/factorio { releaseType = "demo"; };
+
   factorio-mods = callPackage ../games/factorio/mods.nix { };
 
   factorio-utils = callPackage ../games/factorio/utils.nix { };
@@ -18129,4 +18183,9 @@ with pkgs;
   hy = callPackage ../development/interpreters/hy {};
 
   ghc-standalone-archive = callPackage ../os-specific/darwin/ghc-standalone-archive { inherit (darwin) cctools; };
+
+  # No `recurseIntoAttrs` because there's no need to nix-env these.
+  tests = {
+    macOSSierraShared = callPackage ../test/macos-sierra-shared {};
+  };
 }
